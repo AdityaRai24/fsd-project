@@ -1,7 +1,9 @@
-import React from "react";
+import React from 'react'
 
 const StudentDashboard = () => {
-  return <h1 className="text-3xl text-center mt-20">Welcome Student!</h1>;
-};
+  return (
+    <div>StudentDashboard</div>
+  )
+}
 
-export default StudentDashboard;
+export default StudentDashboard
