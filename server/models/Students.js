@@ -1,8 +1,12 @@
-const mongoose = require("mongoose");
+import mongoose, { Schema } from "mongoose";
 
-const studentSchema = new mongoose.Schema({
+const studentSchema = new Schema({
   sapId: { type: String, required: true, unique: true },
   password: { type: String, required: true },
+  studentName: { type: String, required: true },
+  rollNo: { type: String, required: true },
+  batch: { type: Schema.Types.ObjectId, ref: "Batch" },
 });
 
-module.exports = mongoose.model("Student", studentSchema);
+const Student = mongoose.model("Student", studentSchema);
+export default Student;

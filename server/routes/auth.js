@@ -1,7 +1,7 @@
-const express = require("express");
-const jwt = require("jsonwebtoken");
-const Student = require("../models/Students");
-const Teacher = require("../models/Teachers");
+import Teacher from "../models/Teachers";
+import Student from "../models/Students";
+import express from 'express'
+import jwt from 'jsonwebtoken'
 
 const router = express.Router();
 
@@ -10,8 +10,7 @@ router.post("/login", async (req, res) => {
 
   try {
     let user;
-    
-    
+
     if (role === "student") {
       user = await Student.findOne({ sapId });
     } else if (role === "teacher") {
@@ -22,17 +21,13 @@ router.post("/login", async (req, res) => {
 
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
-    
     if (password !== user.password) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
-    
-    const token = jwt.sign(
-      { id: user._id, role },
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" }
-    );
+    const token = jwt.sign({ id: user._id, role }, process.env.JWT_SECRET, {
+      expiresIn: "1h",
+    });
 
     res.json({ token, role });
   } catch (error) {

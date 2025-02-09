@@ -1,8 +1,10 @@
-const mongoose = require("mongoose");
+import mongoose, { Schema } from "mongoose";
 
-const teacherSchema = new mongoose.Schema({
-  sapId: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+const teacherSchema = new Schema({
+  teacherId: { type: String, required: true, unique: true },
+  name: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
 });
 
-module.exports = mongoose.model("Teacher", teacherSchema);
+const Teacher = mongoose.model("Teacher", teacherSchema);
+export default Teacher;
