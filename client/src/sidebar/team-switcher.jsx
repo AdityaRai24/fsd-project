@@ -1,5 +1,3 @@
-"use client"
-
 import * as React from "react"
 import { ChevronsUpDown, Plus } from "lucide-react"
 
@@ -21,9 +19,11 @@ import {
 
 export function TeamSwitcher({
   teams,
+  activeTeam,
+  handleSubChange,
 }) {
   const { isMobile } = useSidebar()
-  const [activeTeam, setActiveTeam] = React.useState(teams[0])
+
 
   return (
     <SidebarMenu>
@@ -58,7 +58,7 @@ export function TeamSwitcher({
             {teams.map((team, index) => (
               <DropdownMenuItem
                 key={team.name}
-                onClick={() => setActiveTeam(team)}
+                onClick={() => handleSubChange(team)}
                 className="gap-2 p-2"
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">

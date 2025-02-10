@@ -1,6 +1,4 @@
-import {
-  Collapsible,
-} from "@/components/ui/collapsible";
+
 import {
   SidebarGroup,
   SidebarGroupLabel,
@@ -8,21 +6,23 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useNavigate } from "react-router";
 
-export function NavMain({ items }) {
+export function NavMain({ items,subject }) {
+
+  const navigate = useNavigate()
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map((item) => (
-          <Collapsible key={item} asChild className="group/collapsible">
-            <SidebarMenuItem>
+        {items.map((item,index) => (
+            <SidebarMenuItem key={index} onClick={()=>navigate(`/teacher-dashboard?exp=${index+1}&sub=${subject.name}`)}>
               <SidebarMenuButton tooltip={item}>
                 {item.icon && <item.icon />}
                 <span className="text-left ml-4 font-medium w-full">{item}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
-          </Collapsible>
         ))}
       </SidebarMenu>
     </SidebarGroup>

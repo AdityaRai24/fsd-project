@@ -1,6 +1,3 @@
-"use client";
-
-import * as React from "react";
 import {
   AudioWaveform,
   BookOpen,
@@ -25,6 +22,8 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
+import { useState } from "react";
+import { useNavigate, useSearchParams } from "react-router";
 
 const data = {
   user: {
@@ -38,15 +37,11 @@ const data = {
       logo: GalleryVerticalEnd,
     },
     {
-      name: "Devops Batch 1",
+      name: "Devops",
       logo: AudioWaveform,
     },
-    {
-      name: "Devops Batch 2",
-      logo: Command,
-    },
   ],
-  navMain : [
+  navMain: [
     "Experiment 1",
     "Experiment 2",
     "Experiment 3",
@@ -57,18 +52,30 @@ const data = {
     "Experiment 8",
     "Experiment 9",
     "Experiment 10",
-  ]
-  
+  ],
 };
 
 export function AppSidebar({ ...props }) {
+
+  const [searchParams] = useSearchParams()
+  const subject = searchParams.get("sub");
+  const currentTeam = data.teams.find((team) => team.name === subject);
+  const [activeTeam, setActiveTeam] = useState(currentTeam ? currentTeam : data.teams[1]);
+
+  const navigate = useNavigate()
+
+  const handleSubChange = (team) => {
+    setActiveTeam(team);
+    navigate('/teacher-dashboard?exp=1&sub='+team.name);
+  };
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher activeTeam={activeTeam} handleSubChange={handleSubChange} teams={data.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain subject={activeTeam} items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={data.user} />

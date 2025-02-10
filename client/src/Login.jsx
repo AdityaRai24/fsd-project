@@ -45,7 +45,7 @@ const Login = () => {
       if (response.data.role === "student") {
         window.location.href = "/student-dashboard";
       } else {
-        window.location.href = "/teacher-dashboard";
+        window.location.href = "/teacher-dashboard?exp=1&sub=devops";
       }
     } catch (error) {
       console.log(error)

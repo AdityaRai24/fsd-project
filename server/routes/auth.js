@@ -1,5 +1,5 @@
-import Teacher from "../models/Teachers";
-import Student from "../models/Students";
+import Teacher from "../models/Teachers.js";
+import Student from "../models/Students.js";
 import express from 'express'
 import jwt from 'jsonwebtoken'
 
@@ -19,10 +19,12 @@ router.post("/login", async (req, res) => {
       return res.status(400).json({ message: "Invalid role selected" });
     }
 
+    console.log(user,user._id,user.sapId,user.password)
+
     if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
     if (password !== user.password) {
-      return res.status(400).json({ message: "Invalid credentials" });
+      return res.status(400).json({ message: "Invalid passs" });
     }
 
     const token = jwt.sign({ id: user._id, role }, process.env.JWT_SECRET, {
@@ -31,8 +33,9 @@ router.post("/login", async (req, res) => {
 
     res.json({ token, role });
   } catch (error) {
+    console.log(error)
     res.status(500).json({ message: "Server error" });
   }
 });
 
-module.exports = router;
+export default router;

@@ -1,10 +1,9 @@
 import express from 'express'
-import authRoutes from './routes/auth'
+import authRoutes from './routes/auth.js'
 import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import dotenv from 'dotenv'
 import mongoose from 'mongoose'
-
 
 dotenv.config();
 
