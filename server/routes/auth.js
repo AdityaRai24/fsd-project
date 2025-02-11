@@ -2,10 +2,15 @@ import Teacher from "../models/Teachers.js";
 import Student from "../models/Students.js";
 import express from 'express'
 import jwt from 'jsonwebtoken'
+import Subject from "../models/Subject.js";
 
 const router = express.Router();
 
+
 router.post("/login", async (req, res) => {
+
+ 
+
   const { sapId, password, role } = req.body;
 
   try {
