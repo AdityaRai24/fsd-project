@@ -40,12 +40,13 @@ const Login = () => {
 
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("role", response.data.role);
-      alert(`Logged in as ${response.data.role}`);
+      
+      const teacherId = sapId
 
       if (response.data.role === "student") {
-        window.location.href = "/student-dashboard";
+        window.location.href = `/student-dashboard/${sapId}`;
       } else {
-        window.location.href = "/teacher-dashboard?exp=1&sub=devops";
+        window.location.href = `/teacher-dashboard/${teacherId}`;
       }
     } catch (error) {
       console.log(error)

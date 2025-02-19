@@ -59,6 +59,7 @@ export function AppSidebar({ ...props }) {
 
   const [searchParams] = useSearchParams()
   const subject = searchParams.get("sub");
+  const teacherId = searchParams.get("sapID")
   const currentTeam = data.teams.find((team) => team.name === subject);
   const [activeTeam, setActiveTeam] = useState(currentTeam ? currentTeam : data.teams[1]);
 
@@ -66,7 +67,7 @@ export function AppSidebar({ ...props }) {
 
   const handleSubChange = (team) => {
     setActiveTeam(team);
-    navigate('/teacher-dashboard?exp=1&sub='+team.name);
+    navigate(`/teacher-dashboard/${teacherId}/?exp=1&sub=`+team.name);
   };
 
   return (

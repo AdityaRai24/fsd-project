@@ -5,6 +5,7 @@ const studentSchema = new Schema({
   password: { type: String, required: true },
   studentName: { type: String, required: true },
   rollNo: { type: String, required: true },
+  batches: [{ type: Schema.Types.ObjectId, ref: "Batch" }],
 });
 
 const Student = mongoose.model("Student", studentSchema);

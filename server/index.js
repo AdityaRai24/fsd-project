@@ -1,10 +1,10 @@
-import express from 'express'
-import authRoutes from './routes/auth.js'
-import cors from 'cors'
-import cookieParser from 'cookie-parser'
-import dotenv from 'dotenv'
-import mongoose from 'mongoose'
-
+import express from "express";
+import authRoutes from "./routes/auth.js";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+import dotenv from "dotenv";
+import mongoose from "mongoose";
+import teacherRoutes from "./routes/teacher.js";
 dotenv.config();
 
 const { MONGO_URL, PORT } = process.env;
@@ -20,6 +20,8 @@ mongoose
   .catch((err) => console.error("MongoDB connection error:", err));
 
 app.use("/api/auth", authRoutes);
+
+app.use("/api", teacherRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
