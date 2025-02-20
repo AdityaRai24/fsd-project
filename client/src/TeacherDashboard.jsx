@@ -1,112 +1,156 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
-import DataTableComp from "./DataTableComp";
-import { SidebarProvider, SidebarTrigger } from "./components/ui/sidebar";
-import { AppSidebar } from "./sidebar/Sidebar";
-import { ChevronRight } from "lucide-react";
-import { useNavigate, useSearchParams, useParams } from "react-router";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Plus } from "lucide-react";
 
 const TeacherDashboard = () => {
-  const [searchParams] = useSearchParams();
-  const { sapId } = useParams();
-  const subject = searchParams.get("sub");
-  const experimentNo = searchParams.get("exp");
-  const teacherId = sapId;
-  const navigate = useNavigate();
-
-  const [teacherData, setTeacherData] = useState(null);
+  const [teacher, setTeacher] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [editMode, setEditMode] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
-
+  const [batchName, setBatchName] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
-    const fetchTeacherData = async () => {
-      try {
-        setLoading(true);
-        const response = await axios.get(`http://localhost:8000/api/teachers/${teacherId}`);
-        setTeacherData(response.data);
-        setError(null);
-      } catch (err) {
-        setError(err.response?.data?.message || 'Error fetching teacher data');
-        console.error('Error fetching teacher data:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetchTeacherData();
+  }, []);
 
-    if (teacherId) {
-      fetchTeacherData();
+  const fetchTeacherData = async () => {
+    const teacherId = localStorage.getItem('teacherId');
+    const token = localStorage.getItem('token');
+
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/api/teachers/${teacherId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      setTeacher(response.data);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to fetch teacher data');
+    } finally {
+      setLoading(false);
     }
-  }, [teacherId]);
+  };
+
+  const handleCreateBatch = async (e) => {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    const teacherId = localStorage.getItem('teacherId');
+
+    try {
+      await axios.post(
+        'http://localhost:8000/api/batches',
+        {
+          name: batchName,
+          teacherId
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      setBatchName('');
+      setIsDialogOpen(false);
+      fetchTeacherData();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to create batch');
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p className="text-lg">Loading...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
 
   return (
-    <SidebarProvider>
-      <AppSidebar teacherData={teacherData} />
-      <SidebarTrigger
-        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-        className="relative ml-16 mt-5"
-      />
-      <main className={`w-full mt-16`}>
-        {loading ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900" />
-          </div>
-        ) : error ? (
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="text-red-500">Error: {error}</div>
-          </div>
-        ) : (
-          <>
-            <div className="text-left mb-6 max-w-[80%] mx-auto">
-              <h1 className="text-4xl font-medium uppercase">{subject}</h1>
-              <div className="flex gap-2 items-center mt-2">
-                <p className="text-gray-600 text-base uppercase">{subject}</p>
-                <ChevronRight className="w-4 h-4" />
-                <p className="text-gray-600 text-base">Experiment {experimentNo}</p>
+    <div className="container mx-auto py-8 px-4">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Welcome, {teacher?.name}</h1>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Create New Batch
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Batch</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleCreateBatch} className="space-y-4">
+              <div>
+                <Label htmlFor="batchName">Batch Name</Label>
+                <Input
+                  id="batchName"
+                  value={batchName}
+                  onChange={(e) => setBatchName(e.target.value)}
+                  placeholder="Enter batch name"
+                  required
+                />
               </div>
-              {teacherData && (
-                <div className="mt-4">
-                  <p className="text-lg">Welcome, {teacherData.name}</p>
-                  <p className="text-sm text-gray-600">{teacherData.email}</p>
-                  <div className="mt-4">
-                    <p className="font-medium">Your Batches:</p>
-                    {teacherData.batches.map((batch) => (
-                      <div key={batch._id} className="mt-2 p-4 bg-gray-50 rounded-lg">
-                        <p className="font-medium">{batch.name}</p>
-                        <div className="mt-2">
-                          <p className="text-sm font-medium">Subjects:</p>
-                          <div className="flex flex-wrap gap-2 mt-1">
-                            {batch.subjects.map((subject) => (
-                              <span 
-                                key={subject._id}
-                                className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded"
-                              >
-                                {subject.name} ({subject.code})
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                        <div className="mt-2 text-sm text-gray-600">
-                          {batch.students.length} Students • {batch.experiments.length} Experiments
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <Button type="submit" className="w-full">
+                Create Batch
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+      
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Profile Information</CardTitle>
+            <CardDescription>Your account details</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center space-x-4">
+              <Avatar className="h-20 w-20">
+                <AvatarFallback className="bg-blue-100 text-blue-600 text-xl">
+                  {teacher?.name?.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="space-y-1">
+                <h2 className="text-xl font-semibold">{teacher?.name}</h2>
+                <p className="text-gray-500">ID: {teacher?.teacherId}</p>
+                <p className="text-gray-500">{teacher?.email}</p>
+              </div>
             </div>
-            <DataTableComp 
-              editMode={editMode} 
-              setEditMode={setEditMode}
-              teacherData={teacherData}
-            />
-          </>
-        )}
-      </main>
-    </SidebarProvider>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
   );
 };
 

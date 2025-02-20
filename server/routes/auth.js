@@ -7,21 +7,18 @@ import Subject from "../models/Subject.js";
 const router = express.Router();
 
 router.post("/login", async (req, res) => {
-  const { sapId, password, role } = req.body;
-  const teacherId = sapId;
+  const {  password, role } = req.body;
+  const userId = role === 'student' ? req.body.sapId : req.body.teacherId;
+
 
   try {
-    let user;
+    const user = await (role === 'student' 
+      ? Student.findOne({ sapId: userId })
+      : Teacher.findOne({ teacherId: userId }));
 
-    if (role === "student") {
-      user = await Student.findOne({ sapId });
-    } else if (role === "teacher") {
-      user = await Teacher.findOne({ teacherId });
-    } else {
-      return res.status(400).json({ message: "Invalid role selected" });
+    if (!user) {
+      return res.status(404).json({ message: `${role} not found` });
     }
-
-    if (!user) return res.status(400).json({ message: "Invalid credentials" });
 
     if (password !== user.password) {
       return res.status(400).json({ message: "Invalid passs" });

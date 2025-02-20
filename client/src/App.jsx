@@ -10,8 +10,8 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Login />} />
-        <Route path="/student-dashboard/:sapID" element={<StudentDashboard />} />
-        <Route path="/teacher-dashboard/:sapID" element={<TeacherDashboard />} />
+        <Route path="/student-dashboard" element={<StudentDashboard />} />
+        <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
       </Routes>
     </Router>
   );

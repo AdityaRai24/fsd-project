@@ -7,25 +7,7 @@ router.get('/teachers/:teacherId', async (req, res) => {
   try {
     const { teacherId } = req.params;
     const teacherData = await Teacher.findOne({ teacherId })
-      .select('teacherId name email batches')
-      .populate({
-        path: 'batches',
-        select: 'name subjects students experiments',
-        populate: [
-          {
-            path: 'subjects',
-            select: 'name code' 
-          },
-          {
-            path: 'students',
-            select: 'name rollNo'
-          },
-          {
-            path: 'experiments',
-            select: 'title description'
-          }
-        ]
-      });
+      .select('teacherId name email');
 
     if (!teacherData) {
       return res.status(404).json({ message: 'Teacher not found' });
