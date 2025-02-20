@@ -1,80 +1,55 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Plus } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import DataTableComp from "./DataTableComp";
+import { SidebarProvider, SidebarTrigger } from "./components/ui/sidebar";
+import { AppSidebar } from "./sidebar/Sidebar";
+import { ChevronRight } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router";
 
 const TeacherDashboard = () => {
   const [teacher, setTeacher] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [batchName, setBatchName] = useState('');
+  const [batchName, setBatchName] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [searchParams] = useSearchParams();
+  const [editMode, setEditMode] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const subject = searchParams.get("sub");
+  const experimentNo = searchParams.get("exp");
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchTeacherData();
   }, []);
 
+  useEffect(() => {
+    if (!subject || !experimentNo || subject === "" || experimentNo === "") {
+      navigate(`/teacher-dashboard?exp=1&sub=devops`);
+    }
+  }, []);
+
   const fetchTeacherData = async () => {
-    const teacherId = localStorage.getItem('teacherId');
-    const token = localStorage.getItem('token');
+    const teacherId = localStorage.getItem("teacherId");
+    const token = localStorage.getItem("token");
 
     try {
       const response = await axios.get(
         `http://localhost:8000/api/teachers/${teacherId}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
       setTeacher(response.data);
+      console.log("pama")
+      console.log(teacher)
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch teacher data');
+      setError(err.response?.data?.message || "Failed to fetch teacher data");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleCreateBatch = async (e) => {
-    e.preventDefault();
-    const token = localStorage.getItem('token');
-    const teacherId = localStorage.getItem('teacherId');
-
-    try {
-      await axios.post(
-        'http://localhost:8000/api/batches',
-        {
-          name: batchName,
-          teacherId
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-      setBatchName('');
-      setIsDialogOpen(false);
-      fetchTeacherData();
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to create batch');
     }
   };
 
@@ -95,62 +70,25 @@ const TeacherDashboard = () => {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Welcome, {teacher?.name}</h1>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Create New Batch
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New Batch</DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleCreateBatch} className="space-y-4">
-              <div>
-                <Label htmlFor="batchName">Batch Name</Label>
-                <Input
-                  id="batchName"
-                  value={batchName}
-                  onChange={(e) => setBatchName(e.target.value)}
-                  placeholder="Enter batch name"
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                Create Batch
-              </Button>
-            </form>
-          </DialogContent>
-        </Dialog>
-      </div>
-      
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Profile Information</CardTitle>
-            <CardDescription>Your account details</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center space-x-4">
-              <Avatar className="h-20 w-20">
-                <AvatarFallback className="bg-blue-100 text-blue-600 text-xl">
-                  {teacher?.name?.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="space-y-1">
-                <h2 className="text-xl font-semibold">{teacher?.name}</h2>
-                <p className="text-gray-500">ID: {teacher?.teacherId}</p>
-                <p className="text-gray-500">{teacher?.email}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+    <SidebarProvider>
+      <AppSidebar teacher={teacher}/>
+      <SidebarTrigger
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        className="relative ml-16 mt-5"
+      />
+      <main className={` w-full mt-16 `}>
+        <div className="text-left mb-6 max-w-[80%] mx-auto">
+          <h1 className="text-4xl font-medium uppercase">{subject}</h1>
+
+          <div className="flex gap-2 items-center mt-2">
+            <p className="text-gray-600 text-base uppercase">{subject}</p>
+            <ChevronRight className="w-4 h-4" />{" "}
+            <p className="text-gray-600 text-base">Experiment {experimentNo}</p>
+          </div>
+        </div>
+        <DataTableComp editMode={editMode} setEditMode={setEditMode} />
+      </main>
+    </SidebarProvider>
   );
 };
 

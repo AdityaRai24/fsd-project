@@ -26,11 +26,6 @@ import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
 
 const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
   teams: [
     {
       name: "Full Stack Development",
@@ -55,11 +50,10 @@ const data = {
   ],
 };
 
-export function AppSidebar({ ...props }) {
+export function AppSidebar({ teacher,...props}) {
 
   const [searchParams] = useSearchParams()
   const subject = searchParams.get("sub");
-  const teacherId = searchParams.get("sapID")
   const currentTeam = data.teams.find((team) => team.name === subject);
   const [activeTeam, setActiveTeam] = useState(currentTeam ? currentTeam : data.teams[1]);
 
@@ -67,7 +61,7 @@ export function AppSidebar({ ...props }) {
 
   const handleSubChange = (team) => {
     setActiveTeam(team);
-    navigate(`/teacher-dashboard/${teacherId}/?exp=1&sub=`+team.name);
+    navigate(`/teacher-dashboard?exp=1&sub=`+team.name);
   };
 
   return (
@@ -79,7 +73,7 @@ export function AppSidebar({ ...props }) {
         <NavMain subject={activeTeam} items={data.navMain} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser teacher={teacher} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>
