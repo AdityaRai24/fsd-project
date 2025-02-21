@@ -5,12 +5,20 @@ import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import teacherRoutes from "./routes/teacher.js";
+import subjectRoutes from "./routes/subjects.js";
+import studentRoutes from "./routes/students.js";
 dotenv.config();
 
 const { MONGO_URL, PORT } = process.env;
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  })
+);
 app.use(cookieParser());
 app.use(express.json());
 
@@ -22,6 +30,10 @@ mongoose
 app.use("/api/auth", authRoutes);
 
 app.use("/api", teacherRoutes);
+
+app.use("/api/subjects", subjectRoutes);
+
+app.use("/api/students", studentRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
