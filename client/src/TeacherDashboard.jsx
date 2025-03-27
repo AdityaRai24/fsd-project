@@ -43,15 +43,15 @@ const TeacherDashboard = () => {
           },
         }
       );
+      localStorage.setItem("allData", JSON.stringify(response.data));
       setTeacher(response.data);
-      console.log("pama")
-      console.log(teacher)
     } catch (err) {
       setError(err.response?.data?.message || "Failed to fetch teacher data");
     } finally {
       setLoading(false);
     }
   };
+
 
   if (loading) {
     return (
@@ -86,7 +86,7 @@ const TeacherDashboard = () => {
             <p className="text-gray-600 text-base">Experiment {experimentNo}</p>
           </div>
         </div>
-        <DataTableComp editMode={editMode} setEditMode={setEditMode} />
+        <DataTableComp experimentNo={experimentNo} editMode={editMode} setEditMode={setEditMode} />
       </main>
     </SidebarProvider>
   );

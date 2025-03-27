@@ -6,6 +6,12 @@ const studentSchema = new Schema({
   studentName: { type: String, required: true },
   rollNo: { type: String, required: true },
   batches: [{ type: Schema.Types.ObjectId, ref: "Batch" }],
+  experiments: [
+    {
+      experimentId: { type: mongoose.Schema.Types.ObjectId, ref: "Experiment" },
+      marks: { type: Array, required: true, min: 0, max: 25 },
+    },
+  ],
 });
 
 const Student = mongoose.model("Student", studentSchema);
