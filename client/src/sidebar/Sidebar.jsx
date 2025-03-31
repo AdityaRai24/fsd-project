@@ -280,14 +280,14 @@ export function AppSidebar({ teacher, ...props }) {
       </SidebarHeader>
       <SidebarContent className="flex flex-col space-y-1">
         {/* View Students Button */}
-        <Button
+        {/* <Button
           variant="ghost"
           className="justify-start gap-2 h-10 px-4 py-2 w-full"
           onClick={handleViewStudents}
         >
           <Users size={18} />
           <span>View Students</span>
-        </Button>
+        </Button> */}
 
         {/* Experiments Dropdown */}
         <Collapsible

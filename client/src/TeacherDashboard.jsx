@@ -17,6 +17,7 @@ const TeacherDashboard = () => {
   const [searchParams] = useSearchParams();
   const [editMode, setEditMode] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [experiment, setExperiment] = useState(null);
   const subject = searchParams.get("sub");
   const experimentNo = searchParams.get("exp");
 
@@ -24,6 +25,7 @@ const TeacherDashboard = () => {
 
   useEffect(() => {
     fetchTeacherData();
+    fetchExperimentData();
   }, []);
 
   const fetchTeacherData = async () => {
@@ -46,6 +48,13 @@ const TeacherDashboard = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchExperimentData = async () => {
+    const response = await axios.get(
+      `http://localhost:8000/api/experiments/${experimentNo}`
+    );
+    setExperiment(response.data);
   };
 
   if (loading) {
@@ -154,7 +163,7 @@ const TeacherDashboard = () => {
                 <p className="text-gray-600 text-base uppercase">{subject}</p>
                 <ChevronRight className="w-4 h-4" />
                 <p className="text-gray-600 text-base">
-                  Experiment {experimentNo}
+                {experiment?.name}
                 </p>
               </div>
             </div>

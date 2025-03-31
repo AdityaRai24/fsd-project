@@ -196,7 +196,6 @@ const styles = StyleSheet.create({
 });
 
 const RubricsPDF = ({ studentData, subjectName }) => {
-
   const defaultCriteria = [
     {
       title: "Knowledge",
@@ -233,11 +232,11 @@ const RubricsPDF = ({ studentData, subjectName }) => {
 
   // Initialize with default criteria
   const [criteria, setCriteria] = useState(defaultCriteria);
+  console.log({ studentData });
 
   useEffect(() => {
     const fetchCriteria = async () => {
       try {
-
         const subjectResponse = await axios.get(
           `http://localhost:8000/api/subjects/name/${subjectName}`,
           {
@@ -264,8 +263,6 @@ const RubricsPDF = ({ studentData, subjectName }) => {
             },
           }
         );
-
-        console.log("6. Rubrics Response:", rubricsResponse.data);
 
         if (
           rubricsResponse.data?.criteria &&
@@ -413,6 +410,8 @@ const RubricsPDF = ({ studentData, subjectName }) => {
                 <Text>Course Outcomes</Text>
               </View>
             </View>
+
+            {console.log({studentData})}
 
             {/* Always render either custom or default criteria */}
             {(criteria || defaultCriteria).map((_, index) =>
