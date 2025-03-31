@@ -1,3 +1,4 @@
+// Import the DeleteExperimentDialog component
 import {
   AudioWaveform,
   BookOpen,
@@ -9,10 +10,14 @@ import {
   PieChart,
   Settings2,
   SquareTerminal,
+  Users,
+  Beaker,
+  ChevronDown,
+  ChevronRight,
+  Plus,
+  Trash2,
 } from "lucide-react";
 
-import { NavMain } from "./nav-main";
-import { NavProjects } from "./nav-projects";
 import { NavUser } from "./nav-user";
 import { TeamSwitcher } from "./team-switcher";
 import {
@@ -24,6 +29,25 @@ import {
 } from "@/components/ui/sidebar";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
+import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { AlertTriangle } from "lucide-react";
+import axios from "axios";
 
 const defaultData = {
   teams: [
@@ -36,23 +60,22 @@ const defaultData = {
       logo: AudioWaveform,
     },
   ],
-  navMain: [
-    "Experiment 1",
-    "Experiment 2",
-    "Experiment 3",
-    "Experiment 4",
-    "Experiment 5",
-    "Experiment 6",
-    "Experiment 7",
-    "Experiment 8",
-    "Experiment 9",
-    "Experiment 10",
-  ],
 };
 
 export function AppSidebar({ teacher, ...props }) {
   const [searchParams] = useSearchParams();
   const [teamsData, setTeamsData] = useState(null);
+  const [experiments, setExperiments] = useState([]);
+  const [isExperimentsOpen, setIsExperimentsOpen] = useState(false);
+  const [newExperimentName, setNewExperimentName] = useState("");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  // Add state for delete confirmation
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [experimentToDelete, setExperimentToDelete] = useState({
+    index: -1,
+    name: "",
+  });
+
   const subject = searchParams.get("sub");
   const navigate = useNavigate();
 
@@ -105,14 +128,106 @@ export function AppSidebar({ teacher, ...props }) {
     }
   }, [subject, subjectsWithLogos]);
 
+  useEffect(() => {
+    const fetchExperiments = async () => {
+      if (!activeTeam) return;
+      
+      try {
+        const token = localStorage.getItem("token");
+        const allData = JSON.parse(localStorage.getItem("allData"));
+        const currentBatch = allData.batches[0];
+
+        const response = await axios.get(
+          `http://localhost:8000/api/experiments?subject=${activeTeam.name}&batch=${currentBatch._id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+
+        setExperiments(response.data);
+      } catch (error) {
+        console.error("Error fetching experiments:", error);
+        setExperiments([]);
+      }
+    };
+
+    fetchExperiments();
+  }, [activeTeam]);
+
   const handleSubChange = (team) => {
     setActiveTeam(team);
     navigate(`/teacher-dashboard?exp=1&sub=${team.name}`);
   };
 
-  if (!teamsData || !activeTeam) {
-    return <div>Loading...</div>;
-  }
+  const handleExperimentClick = (index) => {
+    navigate(`/teacher-dashboard?exp=${experiments[index]._id}&sub=${activeTeam.name}`);
+  };
+
+  const handleViewStudents = () => {
+    navigate(`/view-students?sub=${activeTeam.name}`);
+  };
+
+  const handleAddExperiment = async () => {
+    if (newExperimentName.trim()) {
+      try {
+        const token = localStorage.getItem("token");
+        const allData = JSON.parse(localStorage.getItem("allData"));
+        const currentBatch = allData.batches[0];
+        
+        const response = await axios.post(
+          "http://localhost:8000/api/experiments",
+          {
+            name: newExperimentName.trim(),
+            subject: activeTeam.name,
+            batch: currentBatch._id
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+
+        // Update local state with the new experiment from the response
+        setExperiments([...experiments, response.data]);
+        setNewExperimentName("");
+        setIsAddDialogOpen(false);
+      } catch (error) {
+        console.error("Error adding experiment:", error);
+      }
+    }
+  };
+
+  // Updated delete handling
+  const handleDeleteClick = (index, name) => {
+    setExperimentToDelete({ index, name });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const experiment = experiments[experimentToDelete.index];
+
+      await axios.delete(
+        `http://localhost:8000/api/experiments/${experiment._id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      // Update local state by removing the deleted experiment
+      setExperiments(experiments.filter((_, index) => index !== experimentToDelete.index));
+      setDeleteDialogOpen(false);
+      setExperimentToDelete({ index: -1, name: "" });
+    } catch (error) {
+      console.error("Error deleting experiment:", error);
+    }
+  };
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -123,13 +238,150 @@ export function AppSidebar({ teacher, ...props }) {
           teams={subjectsWithLogos}
         />
       </SidebarHeader>
-      <SidebarContent>
-        <NavMain subject={activeTeam} items={defaultData.navMain} />
+      <SidebarContent className="flex flex-col space-y-1">
+        {/* View Students Button */}
+        <Button
+          variant="ghost"
+          className="justify-start gap-2 h-10 px-4 py-2 w-full"
+          onClick={handleViewStudents}
+        >
+          <Users size={18} />
+          <span>View Students</span>
+        </Button>
+
+        {/* Experiments Dropdown */}
+        <Collapsible
+          open={isExperimentsOpen}
+          onOpenChange={setIsExperimentsOpen}
+          className="w-full"
+        >
+          <CollapsibleTrigger asChild>
+            <Button
+              variant="ghost"
+              className="justify-start gap-2 h-10 px-4 py-2 w-full"
+            >
+              <Beaker size={18} />
+              <span className="flex-1 text-left">View Experiments</span>
+              {isExperimentsOpen ? (
+                <ChevronDown size={16} />
+              ) : (
+                <ChevronRight size={16} />
+              )}
+            </Button>
+          </CollapsibleTrigger>
+
+          <CollapsibleContent className="pl-9 pr-2">
+            <div className="flex flex-col space-y-1 py-2">
+              {experiments.map((experiment, index) => (
+                <div key={experiment._id} className="flex items-center group">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="justify-start h-9 text-sm w-full text-left"
+                    onClick={() => handleExperimentClick(index)}
+                  >
+                    {experiment.name}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => handleDeleteClick(index, experiment.name)}
+                  >
+                    <Trash2 size={14} />
+                  </Button>
+                </div>
+              ))}
+
+              <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2 w-full justify-center gap-1"
+                  >
+                    <Plus size={14} />
+                    Add Experiment
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add New Experiment</DialogTitle>
+                    <DialogDescription>
+                      Enter a name for the new experiment.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="py-4">
+                    <Label htmlFor="experiment-name">Experiment Name</Label>
+                    <Input
+                      id="experiment-name"
+                      value={newExperimentName}
+                      onChange={(e) => setNewExperimentName(e.target.value)}
+                      placeholder="e.g. Experiment 11"
+                      className="mt-2"
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsAddDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button onClick={handleAddExperiment}>
+                      Add Experiment
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
       </SidebarContent>
       <SidebarFooter>
         <NavUser teacher={teacher} />
       </SidebarFooter>
       <SidebarRail />
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteExperimentDialog
+        isOpen={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+        onConfirm={handleConfirmDelete}
+        experimentName={experimentToDelete.name}
+      />
     </Sidebar>
+  );
+}
+
+
+function DeleteExperimentDialog({ 
+  isOpen, 
+  onClose, 
+  onConfirm, 
+  experimentName 
+}) {
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent>
+        <DialogHeader>
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-red-500" />
+            <DialogTitle>Delete Experiment</DialogTitle>
+          </div>
+          <DialogDescription>
+            Are you sure you want to delete "{experimentName}"? This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button variant="default" onClick={onConfirm}>
+            Delete
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

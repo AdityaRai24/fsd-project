@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import DataTableComp from "./DataTableComp";
+import DataTableComp from "./data-table/DataTableComp";
 import { SidebarProvider, SidebarTrigger } from "./components/ui/sidebar";
 import { AppSidebar } from "./sidebar/Sidebar";
 import { ChevronRight } from "lucide-react";
@@ -10,8 +10,6 @@ const TeacherDashboard = () => {
   const [teacher, setTeacher] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [batchName, setBatchName] = useState("");
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchParams] = useSearchParams();
   const [editMode, setEditMode] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -26,7 +24,7 @@ const TeacherDashboard = () => {
 
   useEffect(() => {
     if (!subject || !experimentNo || subject === "" || experimentNo === "") {
-      navigate(`/teacher-dashboard?exp=1&sub=devops`);
+      navigate(`/teacher-dashboard?exp=1&sub=DevOps`);
     }
   }, []);
 

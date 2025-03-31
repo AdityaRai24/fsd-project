@@ -1,123 +1,154 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
 import RubricsPDF from "./components/RubricsPDF";
-import { Download } from "lucide-react";
+import { Download, BookOpen, User, Calendar, School, ChevronRight } from "lucide-react";
+import axios from "axios";
+import { useNavigate } from "react-router";
 
 function StudentDashboard() {
   const [viewMode, setViewMode] = useState("preview");
+  const [loading, setLoading] = useState(true);
+  const [studentData, setStudentData] = useState(null);
+  const [batches, setBatches] = useState([]);
+  const navigate = useNavigate();
+  
+
+  useEffect(() => {
+    fetchStudentData();
+  }, []);
+
+  const fetchStudentData = async () => {
+    const sapId = localStorage.getItem("sapId");
+    const token = localStorage.getItem("token");
+    console.log("sending");
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/api/students/${sapId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setBatches(response.data.batches[0].subjects);
+      localStorage.setItem("studentData", JSON.stringify(response.data));
+      setStudentData(response.data);
+    } catch (err) {
+      console.log(err);
+      console.log(err.response?.data.message);
+      // setError(err.response?.data?.message || "Failed to fetch teacher data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Get initials from subject name
+  const getInitials = (name) => {
+    return name
+      .split(" ")
+      .map((word) => word[0])
+      .join("")
+      .toUpperCase()
+      .substring(0, 2);
+  };
+
+  // Generate a random color based on the subject name
+  const getColorClass = (name) => {
+    const colors = [
+      "bg-blue-600",
+      "bg-green-600",
+      "bg-purple-600",
+      "bg-red-600",
+      "bg-yellow-600",
+      "bg-pink-600",
+      "bg-indigo-600",
+      "bg-teal-600",
+    ];
+
+    // Use the sum of character codes to select a color
+    const sum = name
+      .split("")
+      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return colors[sum % colors.length];
+  };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-      {/* Header */}
-      <header className="bg-blue-800 text-white p-4 shadow-md">
-        <div className="container mx-auto">
-          <h1 className="text-2xl font-bold">Rubrics Assessment Generator</h1>
-          <p className="text-sm">Department of Information Technology</p>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="flex-grow container mx-auto p-4 md:p-6">
-        <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-800">
-              Assessment Rubrics Document
-            </h2>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => setViewMode("preview")}
-                className={`px-4 py-2 rounded ${
-                  viewMode === "preview"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-200 text-gray-700"
-                }`}
-              >
-                Preview
-              </button>
-              <button
-                onClick={() => setViewMode("download")}
-                className={`px-4 py-2 rounded ${
-                  viewMode === "download"
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-200 text-gray-700"
-                }`}
-              >
-                Download
-              </button>
-            </div>
+    <div className="min-h-screen bg-gray-50">
+      {loading ? (
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-gray-900"></div>
+            <p className="mt-4 text-gray-600 font-medium">Loading your dashboard...</p>
           </div>
-
-          {viewMode === "preview" ? (
-            <div
-              className="border border-gray-300 rounded-lg overflow-hidden"
-              style={{ height: "calc(100vh - 250px)" }}
-            >
-              <PDFViewer width="100%" height="100%" className="border-0">
-                <RubricsPDF />
-              </PDFViewer>
+        </div>
+      ) : (
+        <div className="px-6 py-8">
+          {/* Header Section */}
+          <div className="max-w-7xl mx-auto mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h1 className="text-3xl font-medium text-gray-900">
+                Welcome, {studentData?.studentName?.split(' ')[0] || "Student"}
+              </h1>
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center text-gray-600">
+                  <User size={18} className="mr-2" />
+                  <span className="text-sm">SAP ID: {studentData?.sapId}</span>
+                </div>
+                <div className="flex items-center text-gray-600">
+                  <School size={18} className="mr-2" />
+                  <span className="text-sm">Roll No: {studentData?.rollNo}</span>
+                </div>
+              </div>
             </div>
-          ) : (
-            <div
-              className="flex flex-col items-center justify-center p-10 border border-gray-300 rounded-lg"
-              style={{ height: "calc(100vh - 250px)" }}
-            >
-              <div className="text-center mb-6">
-                <h3 className="text-lg font-medium text-gray-800 mb-2">
-                  Your document is ready for download
-                </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {batches.map((subject, index) => (
+                <div
+                  key={index}
+                  onClick={() => navigate(`/student-dashboard/${subject._id}`)}
+                  className="bg-white rounded-lg border border-gray-200 hover:border-gray-300 transition-all duration-200 cursor-pointer hover:shadow-md"
+                >
+                  <div className="p-6">
+                    <div className="flex items-center">
+                      <div
+                        className={`w-12 h-12 rounded-lg flex items-center justify-center ${getColorClass(
+                          subject.name
+                        )} text-white text-lg font-medium`}
+                      >
+                        {getInitials(subject.name)}
+                      </div>
+                      <div className="ml-4 flex-1">
+                        <h3 className="text-lg font-medium text-gray-900">
+                          {subject.name}
+                        </h3>
+                        <p className="text-sm text-gray-500">{subject.code || "No code"}</p>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-gray-400" />
+                    </div>
+                    
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                      <div className="flex items-center text-sm text-gray-600">
+                        <User size={16} className="mr-2" />
+                        <span>{subject.teacher?.name || "Instructor not assigned"}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {batches.length === 0 && (
+              <div className="bg-white rounded-lg border border-gray-200 p-6 text-center">
+                <BookOpen className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No Subjects Found</h3>
                 <p className="text-gray-600">
-                  Click the button below to download the PDF
+                  Contact your administrator to enroll in subjects.
                 </p>
               </div>
-              <PDFDownloadLink
-                document={<RubricsPDF />}
-                fileName="rubrics-assessment.pdf"
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors"
-              >
-                {({ loading }) =>
-                  loading ? (
-                    "Preparing document..."
-                  ) : (
-                    <>
-                      <Download size={20} />
-                      Download PDF
-                    </>
-                  )
-                }
-              </PDFDownloadLink>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-
-        <div className="bg-white rounded-lg shadow-md p-4">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            About This Document
-          </h2>
-          <p className="text-gray-700 mb-3">
-            This is a digital version of the Continuous Assessment for
-            Laboratory/Assignment sessions form used by the Department of
-            Information Technology.
-          </p>
-          <p className="text-gray-700 mb-3">The document includes:</p>
-          <ul className="list-disc pl-5 text-gray-700 mb-3">
-            <li>Student and course information fields</li>
-            <li>Performance indicators assessment table</li>
-            <li>Course outcomes evaluation criteria</li>
-            <li>Signature fields for student, faculty, and department head</li>
-          </ul>
-          <p className="text-gray-700">
-            You can preview the document in the viewer above or download it as a
-            PDF file for printing or digital distribution.
-          </p>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white p-4 text-center text-sm">
-        <p>
-          © 2024-2025 Department of Information Technology. All rights reserved.
-        </p>
-      </footer>
+      )}
     </div>
   );
 }

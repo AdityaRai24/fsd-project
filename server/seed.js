@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import Subject from "./models/Subject.js";
 import Batch from "./models/Batch.js";
 import Student from "./models/Students.js";
 import Teacher from "./models/Teachers.js";
 import TeacherAssignment from "./models/TeacherAssignment.js";
 import Experiment from "./models/Experiment.js";
+import Subject from "./models/subject.js";
 
 dotenv.config();
 const { MONGO_URL } = process.env;
@@ -39,11 +39,16 @@ const seedData = async () => {
 
     // Step 3: Insert Experiments
     const experiments = await Experiment.insertMany([
-      { name: "Experiment 1", subject: "DevOps" },
-      { name: "Experiment 2", subject: "DevOps" },
-      { name: "Experiment 3", subject: "Full Stack Development" },
-      { name: "Experiment 4", subject: "Full Stack Development" },
-      { name: "Experiment 5", subject: "Full Stack Development" },
+      { name: "Experiment 1", subject: "DevOps", batch: batches[0]._id },
+      { name: "Experiment 2", subject: "DevOps", batch: batches[0]._id },
+      { name: "Experiment 3", subject: "DevOps", batch: batches[0]._id },
+      { name: "Experiment 4", subject: "DevOps", batch: batches[0]._id },
+      { name: "Experiment 5", subject: "DevOps", batch: batches[0]._id },
+      { name: "Experiment 6", subject: "DevOps", batch: batches[0]._id },
+      { name: "Experiment 7", subject: "DevOps", batch: batches[0]._id },
+      { name: "Experiment 8", subject: "DevOps", batch: batches[0]._id },
+      { name: "Experiment 9", subject: "DevOps", batch: batches[0]._id },
+      { name: "Experiment 10", subject: "DevOps", batch: batches[0]._id },
     ]);
 
     // Step 4: Insert Students with Experiments
@@ -134,7 +139,8 @@ const seedData = async () => {
     for (const student of students) {
       const studentExperiments = experiments.map((exp) => ({
         experimentId: exp._id,
-        marks: Array.from({ length: 5 }, () => Math.floor(Math.random() * 6)), // Array of length 5 with values 0-5
+        marks: Array(5).fill(0),
+        subject: exp.subject,
       }));
 
       await Student.updateOne(

@@ -7,6 +7,8 @@ import mongoose from "mongoose";
 import teacherRoutes from "./routes/teacher.js";
 import subjectRoutes from "./routes/subjects.js";
 import studentRoutes from "./routes/students.js";
+import experimentRoutes from "./routes/experiment.js";
+
 dotenv.config();
 
 const { MONGO_URL, PORT } = process.env;
@@ -34,6 +36,7 @@ app.use("/api", teacherRoutes);
 app.use("/api/subjects", subjectRoutes);
 
 app.use("/api/students", studentRoutes);
+app.use("/api/experiments", experimentRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);

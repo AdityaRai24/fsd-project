@@ -233,11 +233,20 @@ const RubricsPDF = ({ studentData }) => {
           <Text>{title}</Text>
           <Text style={styles.smallText}>{smallText}</Text>
         </View>
-        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-          <View key={num} style={[styles.tableCell, styles.numberCell]}>
-            {num <= marks.length && <Text>{marks[num - 1]}</Text>}
-          </View>
-        ))}
+        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
+          const totalCol = studentData.allExperimentMarks[num - 1];
+          const totalColReduced = totalCol
+            ? totalCol.reduce((acc, num) => acc + num, 0)
+            : 0;
+
+          return (
+            <View key={num} style={[styles.tableCell, styles.numberCell]}>
+              {num <= marks.length && (
+                <Text> {totalColReduced === 0 ? "" : marks[num - 1]}</Text>
+              )}
+            </View>
+          );
+        })}
       </View>
     );
   };
@@ -286,7 +295,8 @@ const RubricsPDF = ({ studentData }) => {
             <View style={styles.infoItem}>
               <Text style={styles.infoLabel}>Course:</Text>
               <Text style={styles.courseInfoValue}>
-                Advanced Data Structures Laboratory
+                {console.log(studentData)}
+                {studentData?.subjectName || "Advanced Data Structures Laboratory"}
               </Text>
             </View>
             <View style={styles.infoItem}>
@@ -347,15 +357,20 @@ const RubricsPDF = ({ studentData }) => {
                 <Text>Total (25)</Text>
               </View>
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
-
                 const totalCol = studentData.allExperimentMarks[num - 1];
-                const totalColReduced = totalCol ? totalCol.reduce((acc,num) => acc + num,0 ) : 0;
+                const totalColReduced = totalCol
+                  ? totalCol.reduce((acc, num) => acc + num, 0)
+                  : 0;
                 return (
                   <View
                     key={num}
                     style={[styles.tableHeaderCell, styles.numberCell]}
                   >
-                    {<Text>{totalColReduced}</Text>}
+                    {
+                      <Text>
+                        {totalColReduced === 0 ? "" : totalColReduced}
+                      </Text>
+                    }
                   </View>
                 );
               })}

@@ -10,6 +10,7 @@ const studentSchema = new Schema({
     {
       experimentId: { type: mongoose.Schema.Types.ObjectId, ref: "Experiment" },
       marks: { type: Array, required: true, min: 0, max: 25 },
+      subject : { type: String, required: true },
     },
   ],
 });
