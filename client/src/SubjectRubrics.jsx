@@ -29,8 +29,11 @@ const SubjectRubrics = () => {
         rollNo: response.data.rollNo,
         studentName: response.data.studentName,
         sapId: response.data.sapId,
-        subjectName: response.data.subject
+        subjectName: response.data.subject,
+        subject: response.data.subject
       };
+      console.log("Current subject data:", response.data);
+      console.log("Prepared studentData for PDF:", newData);
       setRubricsData(newData);
     } catch (error) {
       console.log(error);

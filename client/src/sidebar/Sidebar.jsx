@@ -16,6 +16,8 @@ import {
   ChevronRight,
   Plus,
   Trash2,
+  Settings,
+  LogOut,
 } from "lucide-react";
 
 import { NavUser } from "./nav-user";
@@ -28,7 +30,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
@@ -48,6 +50,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertTriangle } from "lucide-react";
 import axios from "axios";
+import { toast } from "react-hot-toast";
 
 const defaultData = {
   teams: [
@@ -131,7 +134,7 @@ export function AppSidebar({ teacher, ...props }) {
   useEffect(() => {
     const fetchExperiments = async () => {
       if (!activeTeam) return;
-      
+
       try {
         const token = localStorage.getItem("token");
         const allData = JSON.parse(localStorage.getItem("allData"));
@@ -141,12 +144,19 @@ export function AppSidebar({ teacher, ...props }) {
           `http://localhost:8000/api/experiments?subject=${activeTeam.name}&batch=${currentBatch._id}`,
           {
             headers: {
-              Authorization: `Bearer ${token}`
-            }
+              Authorization: `Bearer ${token}`,
+            },
           }
         );
 
-        setExperiments(response.data);
+        // Sort experiments by extracting number from experiment name
+        const sortedExperiments = response.data.sort((a, b) => {
+          const numA = parseInt(a.name.match(/\d+/)?.[0] || 0);
+          const numB = parseInt(b.name.match(/\d+/)?.[0] || 0);
+          return numA - numB;
+        });
+
+        setExperiments(sortedExperiments);
       } catch (error) {
         console.error("Error fetching experiments:", error);
         setExperiments([]);
@@ -162,7 +172,9 @@ export function AppSidebar({ teacher, ...props }) {
   };
 
   const handleExperimentClick = (index) => {
-    navigate(`/teacher-dashboard?exp=${experiments[index]._id}&sub=${activeTeam.name}`);
+    navigate(
+      `/teacher-dashboard?exp=${experiments[index]._id}&sub=${activeTeam.name}`
+    );
   };
 
   const handleViewStudents = () => {
@@ -175,18 +187,18 @@ export function AppSidebar({ teacher, ...props }) {
         const token = localStorage.getItem("token");
         const allData = JSON.parse(localStorage.getItem("allData"));
         const currentBatch = allData.batches[0];
-        
+
         const response = await axios.post(
           "http://localhost:8000/api/experiments",
           {
             name: newExperimentName.trim(),
             subject: activeTeam.name,
-            batch: currentBatch._id
+            batch: currentBatch._id,
           },
           {
             headers: {
-              Authorization: `Bearer ${token}`
-            }
+              Authorization: `Bearer ${token}`,
+            },
           }
         );
 
@@ -215,18 +227,46 @@ export function AppSidebar({ teacher, ...props }) {
         `http://localhost:8000/api/experiments/${experiment._id}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
       // Update local state by removing the deleted experiment
-      setExperiments(experiments.filter((_, index) => index !== experimentToDelete.index));
+      setExperiments(
+        experiments.filter((_, index) => index !== experimentToDelete.index)
+      );
       setDeleteDialogOpen(false);
       setExperimentToDelete({ index: -1, name: "" });
     } catch (error) {
       console.error("Error deleting experiment:", error);
     }
+  };
+
+  const handleRubricsSettings = async () => {
+    if (!subject) {
+      toast.error("No subject selected");
+      return;
+    }
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/api/subjects/name/${subject}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      navigate(`/rubrics-settings/${response.data._id}`);
+    } catch (err) {
+      toast.error("Failed to fetch subject details");
+      console.error("Error fetching subject:", err);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/");
   };
 
   return (
@@ -337,9 +377,21 @@ export function AppSidebar({ teacher, ...props }) {
             </div>
           </CollapsibleContent>
         </Collapsible>
+
+        {/* Rubrics Settings Button - now placed after View Experiments */}
+        <div className="mb-4">
+          <Button
+            variant="outline"
+            onClick={handleRubricsSettings}
+            className="flex w-full items-center justify-start gap-2"
+          >
+            <Settings className="h-4 w-4" />
+            Rubrics Settings
+          </Button>
+        </div>
       </SidebarContent>
       <SidebarFooter>
-        <NavUser teacher={teacher} />
+        <NavUser teacher={teacher} handleLogout={handleLogout} />
       </SidebarFooter>
       <SidebarRail />
 
@@ -354,12 +406,11 @@ export function AppSidebar({ teacher, ...props }) {
   );
 }
 
-
-function DeleteExperimentDialog({ 
-  isOpen, 
-  onClose, 
-  onConfirm, 
-  experimentName 
+function DeleteExperimentDialog({
+  isOpen,
+  onClose,
+  onConfirm,
+  experimentName,
 }) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -370,7 +421,8 @@ function DeleteExperimentDialog({
             <DialogTitle>Delete Experiment</DialogTitle>
           </div>
           <DialogDescription>
-            Are you sure you want to delete "{experimentName}"? This action cannot be undone.
+            Are you sure you want to delete "{experimentName}"? This action
+            cannot be undone.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2">

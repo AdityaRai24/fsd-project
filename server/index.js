@@ -8,6 +8,9 @@ import teacherRoutes from "./routes/teacher.js";
 import subjectRoutes from "./routes/subjects.js";
 import studentRoutes from "./routes/students.js";
 import experimentRoutes from "./routes/experiment.js";
+import rubricsRouter from './routes/rubrics.js';
+import subjectsRouter from './routes/subjects.js';
+import experimentsRouter from './routes/experiments.js';
 
 dotenv.config();
 
@@ -37,6 +40,9 @@ app.use("/api/subjects", subjectRoutes);
 
 app.use("/api/students", studentRoutes);
 app.use("/api/experiments", experimentRoutes);
+app.use('/api/rubrics', rubricsRouter);
+app.use('/api/subjects', subjectsRouter);
+app.use('/api/experiments', experimentsRouter);
 
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);

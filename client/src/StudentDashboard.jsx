@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
 import RubricsPDF from "./components/RubricsPDF";
-import { Download, BookOpen, User, Calendar, School, ChevronRight } from "lucide-react";
+import { Download, BookOpen, User, Calendar, School, ChevronRight, LogOut } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router";
+import toast from "react-hot-toast";
 
 function StudentDashboard() {
   const [viewMode, setViewMode] = useState("preview");
@@ -72,6 +73,12 @@ function StudentDashboard() {
     return colors[sum % colors.length];
   };
 
+  const handleLogout = () => {
+    localStorage.clear();
+    toast.success("Logged out successfully");
+    navigate("/");
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {loading ? (
@@ -89,7 +96,7 @@ function StudentDashboard() {
               <h1 className="text-3xl font-medium text-gray-900">
                 Welcome, {studentData?.studentName?.split(' ')[0] || "Student"}
               </h1>
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-6">
                 <div className="flex items-center text-gray-600">
                   <User size={18} className="mr-2" />
                   <span className="text-sm">SAP ID: {studentData?.sapId}</span>
@@ -98,6 +105,13 @@ function StudentDashboard() {
                   <School size={18} className="mr-2" />
                   <span className="text-sm">Roll No: {studentData?.rollNo}</span>
                 </div>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors duration-200"
+                >
+                  <LogOut size={18} className="mr-2" />
+                  Logout
+                </button>
               </div>
             </div>
 

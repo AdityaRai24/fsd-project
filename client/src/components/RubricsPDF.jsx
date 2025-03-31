@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Document,
   Page,
@@ -10,6 +10,8 @@ import {
 } from "@react-pdf/renderer";
 import RubricsTop from "@/assets/rubrics_top.png";
 import RubricsBottom from "@/assets/rubrics_bottom.png";
+import axios from "axios";
+import { useParams, useSearchParams } from "react-router";
 
 const styles = StyleSheet.create({
   page: {
@@ -193,57 +195,120 @@ const styles = StyleSheet.create({
   },
 });
 
-const RubricsPDF = ({ studentData }) => {
-  const rowData = [
+const RubricsPDF = ({ studentData, subjectName }) => {
+
+  const defaultCriteria = [
     {
-      title: "1. Knowledge (5)",
-      smallText: "(Factual/Conceptual/Procedural/Metacognitive)",
-      marks: studentData.allExperimentMarks.map((marks) => marks[0]),
+      title: "Knowledge",
+      description: "(Factual/Conceptual/Procedural/Metacognitive)",
+      marks: 5,
+      order: 1,
     },
     {
-      title: "2. Describe (5)",
-      smallText: "(Factual/Conceptual/Procedural/Metacognitive)",
-      marks: studentData.allExperimentMarks.map((marks) => marks[1]),
+      title: "Describe",
+      description: "(Factual/Conceptual/Procedural/Metacognitive)",
+      marks: 5,
+      order: 2,
     },
     {
-      title: "3. Demonstration (5)",
-      smallText: "(Factual/Conceptual/Procedural/Metacognitive)",
-      marks: studentData.allExperimentMarks.map((marks) => marks[2]),
+      title: "Demonstration",
+      description: "(Factual/Conceptual/Procedural/Metacognitive)",
+      marks: 5,
+      order: 3,
     },
     {
-      title: "4. Strategy (Analyse & / or Evaluate) (5)",
-      smallText: "(Factual/Conceptual/Procedural/Metacognitive)",
-      marks: studentData.allExperimentMarks.map((marks) => marks[3]),
+      title: "Strategy (Analyse & / or Evaluate)",
+      description: "(Factual/Conceptual/Procedural/Metacognitive)",
+      marks: 5,
+      order: 4,
     },
     {
-      title: "5. Attitude towards learning (5)",
-      smallText:
+      title: "Attitude towards learning",
+      description:
         "(receiving, attending, responding, valuing, organizing, characterization by value)",
-      marks: studentData.allExperimentMarks.map((marks) => marks[4]),
+      marks: 5,
+      order: 5,
     },
   ];
 
+  // Initialize with default criteria
+  const [criteria, setCriteria] = useState(defaultCriteria);
+
+  useEffect(() => {
+    const fetchCriteria = async () => {
+      try {
+
+        const subjectResponse = await axios.get(
+          `http://localhost:8000/api/subjects/name/${subjectName}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        if (!subjectResponse.data?._id) {
+          console.log("4. No subject ID found for name:", subjectName);
+          return;
+        }
+
+        const subjectId = subjectResponse.data._id;
+        console.log("5. Found subject ID:", subjectId);
+
+        // Then fetch rubrics using the subject ID
+        const rubricsResponse = await axios.get(
+          `http://localhost:8000/api/rubrics/${subjectId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        console.log("6. Rubrics Response:", rubricsResponse.data);
+
+        if (
+          rubricsResponse.data?.criteria &&
+          rubricsResponse.data.criteria.length > 0
+        ) {
+          console.log("7. Setting custom criteria");
+          setCriteria(rubricsResponse.data.criteria);
+        } else {
+          console.log("8. No custom criteria found, using defaults");
+          setCriteria(defaultCriteria);
+        }
+      } catch (error) {
+        setCriteria(defaultCriteria);
+      }
+    };
+
+    fetchCriteria();
+  }, [studentData?.subjectName]);
+
+  // Make sure we have criteria before rendering
+  const rowData = (criteria || defaultCriteria).map((criterion, index) => ({
+    title: `${index + 1}. ${criterion.title} (${criterion.marks})`,
+    smallText: criterion.description,
+    marks: studentData.allExperimentMarks?.[index] || Array(10).fill(0),
+  }));
+
   const renderTableRow = (rowIndex, rowInfo) => {
+    if (!rowInfo) return null;
+
     const { title, smallText, marks } = rowInfo;
-    const total = marks.reduce((acc, mark) => acc + mark, 0);
 
     return (
-      <View style={styles.tableRow}>
+      <View style={styles.tableRow} key={rowIndex}>
         <View style={[styles.tableCell, styles.indicatorCell]}>
           <Text>{title}</Text>
           <Text style={styles.smallText}>{smallText}</Text>
         </View>
         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
-          const totalCol = studentData.allExperimentMarks[num - 1];
-          const totalColReduced = totalCol
-            ? totalCol.reduce((acc, num) => acc + num, 0)
-            : 0;
-
+          const mark =
+            studentData.allExperimentMarks?.[num - 1]?.[rowIndex] || "";
           return (
             <View key={num} style={[styles.tableCell, styles.numberCell]}>
-              {num <= marks.length && (
-                <Text> {totalColReduced === 0 ? "" : marks[num - 1]}</Text>
-              )}
+              <Text>{mark}</Text>
             </View>
           );
         })}
@@ -295,8 +360,9 @@ const RubricsPDF = ({ studentData }) => {
             <View style={styles.infoItem}>
               <Text style={styles.infoLabel}>Course:</Text>
               <Text style={styles.courseInfoValue}>
-                {console.log(studentData)}
-                {studentData?.subjectName || "Advanced Data Structures Laboratory"}
+                {subjectName
+                  ? subjectName
+                  : "Advanced Data Structures Laboratory"}
               </Text>
             </View>
             <View style={styles.infoItem}>
@@ -348,8 +414,10 @@ const RubricsPDF = ({ studentData }) => {
               </View>
             </View>
 
-            {/* Dynamically render rows */}
-            {rowData.map((row, index) => renderTableRow(index, row))}
+            {/* Always render either custom or default criteria */}
+            {(criteria || defaultCriteria).map((_, index) =>
+              renderTableRow(index, rowData[index])
+            )}
 
             {/* Total Row */}
             <View style={styles.tableRow}>

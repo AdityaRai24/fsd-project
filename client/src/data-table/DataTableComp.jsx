@@ -41,14 +41,15 @@ const DataTableComp = ({ editMode, setEditMode, experimentNo }) => {
   const currentSubject = searchParams.get("sub") || "DevOps";
 
   const {
+    data,
+    loading,
+    error,
     studentsData,
     setStudentsData,
     sectionMarks,
     setSectionMarks,
     customMarks,
     setCustomMarks,
-    isLoading,
-    error,
   } = useStudentData(currentSubject, experimentNo);
 
   const handleMarksChange = (rowId, value, sectionId = null) => {
@@ -292,7 +293,7 @@ const DataTableComp = ({ editMode, setEditMode, experimentNo }) => {
           student={row.original}
           experimentNo={experimentNo}
           handleViewRubrics={handleViewRubrics}
-          disabled={isLoading || isSaving}
+          disabled={loading || isSaving}
         />
       ),
     },
@@ -318,7 +319,7 @@ const DataTableComp = ({ editMode, setEditMode, experimentNo }) => {
   });
 
   // Render loading state
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="max-w-[80%] mx-auto flex items-center justify-center h-64">
         <div className="text-center">
@@ -362,7 +363,7 @@ const DataTableComp = ({ editMode, setEditMode, experimentNo }) => {
         editMode={editMode}
         handleSaveChanges={handleSaveChanges}
         setEditMode={setEditMode}
-        disabled={isLoading || isSaving}
+        disabled={loading || isSaving}
       />
 
       <div className={`rounded-md border ${editMode && "bg-gray-50"}`}>
@@ -406,7 +407,7 @@ const DataTableComp = ({ editMode, setEditMode, experimentNo }) => {
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  {isLoading ? "Loading..." : "No results."}
+                  {loading ? "Loading..." : "No results."}
                 </TableCell>
               </TableRow>
             )}
@@ -414,9 +415,10 @@ const DataTableComp = ({ editMode, setEditMode, experimentNo }) => {
         </Table>
       </div>
 
-      <TablePagination table={table} disabled={isLoading || isSaving} />
+      <TablePagination table={table} disabled={loading || isSaving} />
 
       <StudentRubricsModal
+        subjectName={currentSubject}
         isOpen={isRubricsModalOpen}
         onClose={() => setIsRubricsModalOpen(false)}
         student={selectedStudent}

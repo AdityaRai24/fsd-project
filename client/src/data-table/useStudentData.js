@@ -1,6 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from 'react-router-dom';
 
-const useStudentData = (currentSubject, experimentNo) => {
+const useStudentData = (currentSubject) => {
+  const [searchParams] = useSearchParams();
+  const experimentNo = searchParams.get("exp");
+
   const [studentsData, setStudentsData] = useState([]);
   const [sectionMarks, setSectionMarks] = useState({});
   const [customMarks, setCustomMarks] = useState({});
@@ -57,17 +61,18 @@ const useStudentData = (currentSubject, experimentNo) => {
         }
 
         const formattedData = students.map((student) => {
-          const experimentData = student.experiments[experimentNo - 1];
+          const experimentData = student.experiments.find((item) => item.experimentId === experimentNo);
           return {
             rollNo: student.rollNo,
             sapId: student.sapId,
             studentName: student.studentName,
-            marks: experimentData?.marks || [0, 0, 0, 0, 0],
+            marks: experimentData?.marks || Array(5).fill(0),
             totalMarks:
               experimentData?.marks?.reduce((acc, mark) => acc + mark, 0) || 0,
             studentId: student._id,
             experimentId: experimentData ? experimentData.experimentId : null,
             allExperimentMarks: student.experiments.map((exp) => exp.marks),
+            remarks: experimentData?.remarks || "",
           };
         });
 
@@ -162,6 +167,7 @@ const useStudentData = (currentSubject, experimentNo) => {
     isLoading,
     error,
     updateLocalStorage,
+    experimentNo,
   };
 };
 

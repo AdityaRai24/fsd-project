@@ -4,7 +4,7 @@ import RubricsPDF from './RubricsPDF';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 
-const StudentRubricsModal = ({ isOpen, onClose, student }) => {
+const StudentRubricsModal = ({ isOpen, onClose, student,subjectName }) => {
   if (!student) return null;
 
   return (
@@ -17,7 +17,7 @@ const StudentRubricsModal = ({ isOpen, onClose, student }) => {
         </DialogHeader>
         <div className="mt-4 h-[70vh]">
           <PDFViewer width="100%" height="100%" showToolbar={false} className="border-0">
-            <RubricsPDF studentData={student} />
+            <RubricsPDF subjectName={subjectName} studentData={student} />
           </PDFViewer>
         </div>
       </DialogContent>
