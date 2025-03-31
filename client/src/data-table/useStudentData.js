@@ -5,6 +5,7 @@ const useStudentData = (currentSubject) => {
   const [searchParams] = useSearchParams();
   const experimentNo = searchParams.get("exp");
 
+
   const [studentsData, setStudentsData] = useState([]);
   const [sectionMarks, setSectionMarks] = useState({});
   const [customMarks, setCustomMarks] = useState({});

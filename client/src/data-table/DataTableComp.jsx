@@ -290,6 +290,7 @@ const DataTableComp = ({ editMode, setEditMode, experimentNo }) => {
       header: () => <div className="text-center">Actions</div>,
       cell: ({ row }) => (
         <TableActions
+          subjectName={currentSubject}
           student={row.original}
           experimentNo={experimentNo}
           handleViewRubrics={handleViewRubrics}

@@ -4,7 +4,7 @@ import { FileText, Download } from "lucide-react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import RubricsPDF from "@/components/RubricsPDF";
 
-const TableActions = ({ student, experimentNo, handleViewRubrics }) => {
+const TableActions = ({ student, experimentNo, handleViewRubrics, subjectName }) => {
   return (
     <div className="flex justify-center gap-2">
       <Button
@@ -19,7 +19,7 @@ const TableActions = ({ student, experimentNo, handleViewRubrics }) => {
 
       <PDFDownloadLink
         document={
-          <RubricsPDF experimentNo={experimentNo} studentData={student} />
+          <RubricsPDF subjectName={subjectName} experimentNo={experimentNo} studentData={student} />
         }
         fileName={`rubrics-${student.rollNo}-${student.studentName
           .replace(/\s+/g, "-")

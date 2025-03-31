@@ -41,7 +41,7 @@ app.use("/api/students", studentRoutes);
 app.use("/api/experiments", experimentRoutes);
 app.use('/api/rubrics', rubricsRouter);
 app.use('/api/subjects', subjectsRouter);
-app.use('/api/experiments', experimentsRouter);
+// app.use('/api/experiments', experimentsRouter);
 app.use('/api/teachers', teachersRouter);
 
 app.listen(PORT, () => {

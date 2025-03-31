@@ -8,6 +8,7 @@ import SubjectRubrics from "./SubjectRubrics";
 import RubricsSettings from "./RubricsSettings";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
+import TeacherDash from "./TeacherDash";
 
 function App() {
   return (
@@ -37,6 +38,15 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/teacher-dash"
+          element={
+            <ProtectedRoute allowedRole="teacher">
+              <TeacherDash />
+            </ProtectedRoute>
+          }
+        />
+        
         <Route
           path="/rubrics-settings/:subjectId"
           element={<RubricsSettings />}

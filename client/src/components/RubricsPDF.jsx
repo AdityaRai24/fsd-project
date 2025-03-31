@@ -232,6 +232,7 @@ const RubricsPDF = ({ studentData, subjectName }) => {
 
   // Initialize with default criteria
   const [criteria, setCriteria] = useState(defaultCriteria);
+  console.log(studentData)
 
   useEffect(() => {
     const fetchCriteria = async () => {
@@ -251,7 +252,6 @@ const RubricsPDF = ({ studentData, subjectName }) => {
         }
 
         const subjectId = subjectResponse.data._id;
-        console.log("5. Found subject ID:", subjectId);
 
         // Then fetch rubrics using the subject ID
         const rubricsResponse = await axios.get(
@@ -267,7 +267,6 @@ const RubricsPDF = ({ studentData, subjectName }) => {
           rubricsResponse.data?.criteria &&
           rubricsResponse.data.criteria.length > 0
         ) {
-          console.log("7. Setting custom criteria");
           setCriteria(rubricsResponse.data.criteria);
         } else {
           console.log("8. No custom criteria found, using defaults");
