@@ -232,7 +232,6 @@ const RubricsPDF = ({ studentData, subjectName }) => {
 
   // Initialize with default criteria
   const [criteria, setCriteria] = useState(defaultCriteria);
-  console.log(studentData)
 
   useEffect(() => {
     const fetchCriteria = async () => {

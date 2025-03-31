@@ -5,12 +5,12 @@ const useStudentData = (currentSubject) => {
   const [searchParams] = useSearchParams();
   const experimentNo = searchParams.get("exp");
 
-
   const [studentsData, setStudentsData] = useState([]);
   const [sectionMarks, setSectionMarks] = useState({});
   const [customMarks, setCustomMarks] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
 
   useEffect(() => {
     let isMounted = true;
@@ -63,6 +63,11 @@ const useStudentData = (currentSubject) => {
 
         const formattedData = students.map((student) => {
           const experimentData = student.experiments.find((item) => item.experimentId === experimentNo);
+          // Filter experiments for current subject only
+          const subjectExperiments = student.experiments.filter(exp => 
+            exp.subject === currentSubject
+          );
+          
           return {
             rollNo: student.rollNo,
             sapId: student.sapId,
@@ -72,10 +77,13 @@ const useStudentData = (currentSubject) => {
               experimentData?.marks?.reduce((acc, mark) => acc + mark, 0) || 0,
             studentId: student._id,
             experimentId: experimentData ? experimentData.experimentId : null,
-            allExperimentMarks: student.experiments.map((exp) => exp.marks),
+            allExperimentMarks: subjectExperiments.map((exp) => exp.marks),
             remarks: experimentData?.remarks || "",
           };
         });
+
+        console.log({formattedData})
+
 
         if (isMounted) {
           // Initialize section marks
