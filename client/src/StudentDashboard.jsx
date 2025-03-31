@@ -142,8 +142,8 @@ function StudentDashboard() {
                     
                     <div className="mt-4 pt-4 border-t border-gray-100">
                       <div className="flex items-center text-sm text-gray-600">
-                        <User size={16} className="mr-2" />
-                        <span>{subject.teacher?.name || "Instructor not assigned"}</span>
+                        {/* <User size={16} className="mr-2" /> */}
+                        {/* <span>{subject.teacher?.name || "Instructor not assigned"}</span> */}
                       </div>
                     </div>
                   </div>

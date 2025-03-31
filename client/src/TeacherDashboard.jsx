@@ -18,6 +18,7 @@ const TeacherDashboard = () => {
   const [editMode, setEditMode] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [experiment, setExperiment] = useState(null);
+  const [teacherSubjects, setTeacherSubjects] = useState(null);
   const subject = searchParams.get("sub");
   const experimentNo = searchParams.get("exp");
 
@@ -57,6 +58,31 @@ const TeacherDashboard = () => {
     setExperiment(response.data);
   };
 
+  const fetchTeacherSubjects = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `http://localhost:8000/api/teachers/${teacher?._id}/subjects`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setTeacherSubjects(response.data.teacher[0]);
+    } catch (error) {
+      console.error("Error fetching teacher subjects:", error);
+      toast.error("Failed to fetch subjects");
+    }
+  };
+
+
+  useEffect(() => {
+    if (teacher?._id) {
+      fetchTeacherSubjects();
+    }
+  }, [teacher]);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -75,12 +101,10 @@ const TeacherDashboard = () => {
     );
   }
 
-  console.log(teacher)
-    
   return (
     <SidebarProvider>
       <Toaster position="top-center" />
-      <AppSidebar teacher={teacher}/>
+      <AppSidebar teacher={teacher} />
       <SidebarTrigger
         onClick={() => setIsSidebarOpen(!isSidebarOpen)}
         className="relative ml-16 mt-5"
@@ -92,7 +116,7 @@ const TeacherDashboard = () => {
               {/* Header Section with Teacher Info */}
               <div className="flex items-center justify-between mb-8">
                 <h1 className="text-3xl font-medium text-gray-900">
-                  Welcome, {teacher?.name?.split(' ')[0] || "Teacher"}
+                  Welcome, {teacher?.name?.split(" ")[0] || "Teacher"}
                 </h1>
                 <div className="flex items-center space-x-6">
                   <div className="flex items-center text-gray-600">
@@ -111,12 +135,19 @@ const TeacherDashboard = () => {
                 <div className="flex items-center">
                   <div className="bg-gray-900 rounded-full p-4 h-16 w-16 flex items-center justify-center">
                     <span className="text-2xl text-white">
-                      {teacher?.name.split(' ').map(word => word[0]).join('')}
+                      {teacher?.name
+                        .split(" ")
+                        .map((word) => word[0])
+                        .join("")}
                     </span>
                   </div>
                   <div className="ml-6">
-                    <h2 className="text-xl font-medium text-gray-900">{teacher?.name}</h2>
-                    <p className="text-gray-500 mt-1">Department of Information Technology</p>
+                    <h2 className="text-xl font-medium text-gray-900">
+                      {teacher?.name}
+                    </h2>
+                    <p className="text-gray-500 mt-1">
+                      Department of Information Technology
+                    </p>
                   </div>
                 </div>
               </div>
@@ -127,9 +158,12 @@ const TeacherDashboard = () => {
                   <div className="text-gray-900 mb-4">
                     <BookOpen className="h-8 w-8" />
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Select Subject</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Select Subject
+                  </h3>
                   <p className="text-gray-600 text-sm">
-                    Choose a subject from the sidebar to begin evaluating student experiments
+                    Choose a subject from the sidebar to begin evaluating
+                    student experiments
                   </p>
                 </div>
 
@@ -137,9 +171,12 @@ const TeacherDashboard = () => {
                   <div className="text-gray-900 mb-4">
                     <ClipboardEdit className="h-8 w-8" />
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Manage Marks</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Manage Marks
+                  </h3>
                   <p className="text-gray-600 text-sm">
-                    Edit and update student marks for each experiment efficiently
+                    Edit and update student marks for each experiment
+                    efficiently
                   </p>
                 </div>
 
@@ -147,9 +184,12 @@ const TeacherDashboard = () => {
                   <div className="text-gray-900 mb-4">
                     <Settings className="h-8 w-8" />
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Customize Rubrics</h3>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Customize Rubrics
+                  </h3>
                   <p className="text-gray-600 text-sm">
-                    Configure assessment criteria and rubrics for better evaluation
+                    Configure assessment criteria and rubrics for better
+                    evaluation
                   </p>
                 </div>
               </div>
@@ -162,15 +202,13 @@ const TeacherDashboard = () => {
               <div className="flex gap-2 items-center mt-2">
                 <p className="text-gray-600 text-base uppercase">{subject}</p>
                 <ChevronRight className="w-4 h-4" />
-                <p className="text-gray-600 text-base">
-                {experiment?.name}
-                </p>
+                <p className="text-gray-600 text-base">{experiment?.name}</p>
               </div>
             </div>
-            <DataTableComp 
-              experimentNo={experimentNo} 
-              editMode={editMode} 
-              setEditMode={setEditMode} 
+            <DataTableComp
+              experimentNo={experimentNo}
+              editMode={editMode}
+              setEditMode={setEditMode}
             />
           </>
         )}

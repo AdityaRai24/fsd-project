@@ -11,6 +11,8 @@ import experimentRoutes from "./routes/experiment.js";
 import rubricsRouter from './routes/rubrics.js';
 import subjectsRouter from './routes/subjects.js';
 import experimentsRouter from './routes/experiments.js';
+import teachersRouter from './routes/teacher.js';
+
 
 dotenv.config();
 
@@ -33,16 +35,14 @@ mongoose
   .catch((err) => console.error("MongoDB connection error:", err));
 
 app.use("/api/auth", authRoutes);
-
 app.use("/api", teacherRoutes);
-
 app.use("/api/subjects", subjectRoutes);
-
 app.use("/api/students", studentRoutes);
 app.use("/api/experiments", experimentRoutes);
 app.use('/api/rubrics', rubricsRouter);
 app.use('/api/subjects', subjectsRouter);
 app.use('/api/experiments', experimentsRouter);
+app.use('/api/teachers', teachersRouter);
 
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
