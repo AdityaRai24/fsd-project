@@ -90,7 +90,7 @@ const SubjectRubrics = () => {
       <div className="h-[calc(100vh-64px)]">
         {activeView === "preview" ? (
           <PDFViewer width="100%" height="100%" className="border-0">
-            <RubricsPDF studentData={rubricsData} />
+            <RubricsPDF studentData={rubricsData} subjectName={rubricsData.subjectName} />
           </PDFViewer>
         ) : (
           <div className="h-full flex items-center justify-center bg-gray-50">

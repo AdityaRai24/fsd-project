@@ -83,8 +83,7 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     marginRight: 30,
     marginTop: 18,
-    justifyContent: "space-between",
-  },  
+  },
   infoItemBottom: {
     flexDirection: "row",
     gap: 5,
@@ -180,6 +179,15 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderRightColor: "#000",
   },
+  tableCellFields: {
+    fontSize: 12,
+    padding: 3,
+    textAlign: "left",
+    borderStyle: "solid",
+    borderRightWidth: 1,
+    borderRightColor: "#000",
+    display: "flex",
+  },
   tableCell: {
     fontSize: 12,
     padding: 3,
@@ -187,6 +195,10 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
     borderRightWidth: 1,
     borderRightColor: "#000",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    minHeight: 25,
   },
   tableCellLeft: {
     fontSize: 12,
@@ -202,24 +214,6 @@ const styles = StyleSheet.create({
   numberCell: {
     width: "6%",
   },
-  // signatureRow: {
-  //   flexDirection: "column",
-  //   marginTop: 20,
-  //   justifyContent: "space-between",
-  // },
-  // signatureBox: {
-  //   width: "30%",
-  // },
-  // signatureLabel: {
-  //   fontSize: 12,
-  //   marginBottom: 20,
-  // },
-  // signatureLine: {
-  //   borderTopWidth: 1,
-  //   borderTopColor: "#000",
-  //   marginTop: 5,
-  //   marginBottom: 2,
-  // },
   signatureMainCol: {
     display: "flex",
   },
@@ -235,9 +229,9 @@ const styles = StyleSheet.create({
     fontFamily: "Times-Bold",
     fontWeight: "bold",
   },
-  footer:{
+  footer: {
     marginTop: 40,
-  }
+  },
 });
 
 const RubricsPDF = ({ studentData, subjectName }) => {
@@ -280,12 +274,13 @@ const RubricsPDF = ({ studentData, subjectName }) => {
       order: 6,
     },
     {
-      title: "Non-verbal communication skills/ Behvaviour or Behavioural skills",
+      title:
+        "Non-verbal communication skills/ Behvaviour or Behavioural skills",
       description:
         "(motor skills, hand-eye coordination, gross body movements, finely coordindated body movements speech behaviours)",
       marks: 5,
       order: 7,
-    }
+    },
   ];
 
   const [criteria, setCriteria] = useState(defaultCriteria);
@@ -309,7 +304,6 @@ const RubricsPDF = ({ studentData, subjectName }) => {
 
         const subjectId = subjectResponse.data._id;
 
-        // Then fetch rubrics using the subject ID
         const rubricsResponse = await axios.get(
           `http://localhost:8000/api/rubrics/${subjectId}`,
           {
@@ -323,6 +317,7 @@ const RubricsPDF = ({ studentData, subjectName }) => {
           rubricsResponse.data?.criteria &&
           rubricsResponse.data.criteria.length > 0
         ) {
+          console.log("7. Custom criteria found, using custom criteria");
           setCriteria(rubricsResponse.data.criteria);
         } else {
           console.log("8. No custom criteria found, using defaults");
@@ -336,6 +331,8 @@ const RubricsPDF = ({ studentData, subjectName }) => {
     fetchCriteria();
   }, [studentData?.subjectName]);
 
+  console.log(criteria);
+
   const rowData = (criteria || defaultCriteria).map((criterion, index) => ({
     title: `${index + 1}. ${criterion.title} (${criterion.marks})`,
     smallText: criterion.description,
@@ -346,19 +343,19 @@ const RubricsPDF = ({ studentData, subjectName }) => {
     if (!rowInfo) return null;
 
     const { title, smallText, marks } = rowInfo;
+    const criterionMarks = criteria[rowIndex]?.marks || 0;
 
     return (
       <View style={styles.tableRow} key={rowIndex}>
-        <View style={[styles.tableCell, styles.indicatorCell]}>
+        <View style={[styles.tableCellFields, styles.indicatorCell]}>
           <Text>{title}</Text>
           <Text style={styles.smallText}>{smallText}</Text>
         </View>
         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => {
-          const mark =
-            studentData.allExperimentMarks?.[num - 1]?.[rowIndex] || "";
+          const mark = studentData.allExperimentMarks?.[num - 1]?.[rowIndex];
           return (
             <View key={num} style={[styles.tableCell, styles.numberCell]}>
-              <Text>{mark}</Text>
+              <Text>{criterionMarks === 0 ? "--" : mark || ""}</Text>
             </View>
           );
         })}
@@ -366,16 +363,10 @@ const RubricsPDF = ({ studentData, subjectName }) => {
     );
   };
 
-  const totalMarks = rowData.reduce(
-    (acc, row) => acc + row.marks.reduce((sum, mark) => sum + mark, 0),
-    0
-  );
-
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.pageBorder}>
-          {/* Header with logo and title */}
           <View style={styles.header}>
             <Image src={RubricsTop} style={styles.headerImg} />
           </View>
@@ -390,7 +381,6 @@ const RubricsPDF = ({ studentData, subjectName }) => {
             <Text style={styles.academicYear}>Academic Year 2024 - 2025</Text>
           </View>
 
-          {/* Student information */}
           <View style={styles.infoRow}>
             <View style={styles.infoItem}>
               <Text style={styles.infoLabel}>Name:</Text>
@@ -438,14 +428,11 @@ const RubricsPDF = ({ studentData, subjectName }) => {
             </View>
           </View>
 
-          {/* Performance Indicators */}
           <View style={styles.table}>
             <View style={styles.tableRow}>
               <View style={[styles.tableHeaderCell, styles.indicatorCell]}>
                 <Text>Performance Indicators</Text>
-                <Text style={styles.smallText}>
-                  (Minimum 3 indicators)
-                </Text>
+                <Text style={styles.smallText}>(Minimum 3 indicators)</Text>
               </View>
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
                 <View
@@ -457,12 +444,11 @@ const RubricsPDF = ({ studentData, subjectName }) => {
               ))}
             </View>
 
-            {/* Course Outcomes Header */}
             <View style={styles.tableRow}>
-              <View style={[styles.tableHeaderCell,styles.indicatorCell]}>
+              <View style={[styles.tableHeaderCell, styles.indicatorCell]}>
                 <Text>Course Outcome</Text>
               </View>
-              {[1, 1,1,1,1,1,1,1,1,1].map((num) => (
+              {[1, 1, 1, 1, 1, 1, 1, 1, 1, 1].map((num) => (
                 <View
                   key={num}
                   style={[styles.tableHeaderCell, styles.numberCell]}
@@ -472,12 +458,10 @@ const RubricsPDF = ({ studentData, subjectName }) => {
               ))}
             </View>
 
-            {/* Always render either custom or default criteria */}
             {(criteria || defaultCriteria).map((_, index) =>
               renderTableRow(index, rowData[index])
             )}
 
-            {/* Total Row */}
             <View style={styles.tableRow}>
               <View style={[styles.tableHeaderCell, styles.indicatorCell]}>
                 <Text>Total (25)</Text>
@@ -503,50 +487,6 @@ const RubricsPDF = ({ studentData, subjectName }) => {
             </View>
           </View>
 
-          {/* Signature Row */}
-          {/* <View style={styles.signatureRow}>
-            <Text style={styles.signatureLabel}>
-              Signature of the faculty member
-            </Text>
-          </View> */}
-
-          {/* Signature Section */}
-          {/* <View style={styles.signatureRow}>
-            <View style={styles.signatureBox}>
-              <Text style={styles.signatureLabel}>Sign of the Student:</Text>
-              <View style={styles.signatureLine}></View>
-            </View>
-
-            <View style={styles.signatureBox}>
-              <Text style={styles.signatureLabel}>
-                Signature of the Faculty member:
-              </Text>
-              <View style={styles.signatureLine}></View>
-              <Text style={styles.signatureLabel}>
-                Name of the Faculty member:
-              </Text>
-              <View style={styles.signatureLine}></View>
-            </View>
-
-            <View style={styles.signatureBox}>
-              <Text style={styles.signatureLabel}>Dr. Vinaya Sawant</Text>
-              <Text style={styles.signatureLabel}>Head of the Department</Text>
-              <Text style={styles.signatureLabel}>Date:</Text>
-              <View style={styles.signatureLine}></View>
-            </View>
-          </View> */}
-
-          {/* <View>
-            <View style={styles.signatureMainCol}>
-              <Text>Sign of the student.</Text>
-              <Text>________</Text>
-            </View>
-            <View style={styles.signatureBox}>
-              <Text style={styles.signatureLabel}>Sign of the Student:</Text>
-              <View style={styles.signatureLine}></View>
-            </View>
-          </View> */}
-
           <View style={styles.infoRowBottom}>
             <View style={styles.infoItemBottom}>
               <Text style={styles.infoLabelBottom}>Sign of the Student:</Text>
@@ -556,17 +496,23 @@ const RubricsPDF = ({ studentData, subjectName }) => {
 
           <View style={styles.infoRowBottomTwo}>
             <View style={styles.infoItemBottom}>
-              <Text style={styles.infoLabelBottom}>Signature of the Faculty member:</Text>
+              <Text style={styles.infoLabelBottom}>
+                Signature of the Faculty member:
+              </Text>
               <Text style={styles.infoValueBottomNoUnderline}></Text>
             </View>
             <View style={styles.infoItemBottom}>
-              <Text style={styles.infoLabelBottom}>Signature of Head of the Department</Text>
+              <Text style={styles.infoLabelBottom}>
+                Signature of Head of the Department
+              </Text>
             </View>
           </View>
 
           <View style={styles.infoRowBottomTwo}>
             <View style={styles.infoItemBottom}>
-              <Text style={styles.infoLabelBottom}>Name of the Faculty member:</Text>
+              <Text style={styles.infoLabelBottom}>
+                Name of the Faculty member:
+              </Text>
               <Text style={styles.infoValueBottom}></Text>
             </View>
             <View style={styles.infoItemBottom}>
