@@ -70,6 +70,42 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     justifyContent: "space-between",
   },
+  infoRowBottom: {
+    flexDirection: "row",
+    marginTop: 18,
+    marginLeft: 5,
+    justifyContent: "space-between",
+  },
+  infoRowBottomTwo: {
+    display: "flex",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginLeft: 5,
+    marginRight: 30,
+    marginTop: 18,
+    justifyContent: "space-between",
+  },  
+  infoItemBottom: {
+    flexDirection: "row",
+    gap: 5,
+  },
+  infoLabelBottom: {
+    fontSize: 12,
+    fontWeight: "bold",
+    marginRight: 0,
+  },
+  infoValueBottom: {
+    fontSize: 12,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#000",
+    width: 120,
+  },
+  infoValueBottomNoUnderline: {
+    fontSize: 12,
+    borderBottomColor: "#000",
+    width: 100,
+    marginRight: 10,
+  },
   infoLeft: {
     flex: 1,
   },
@@ -77,11 +113,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+
   infoLabel: {
     fontSize: 12,
     fontWeight: "bold",
     marginRight: 5,
   },
+
   infoValue: {
     fontSize: 12,
     borderBottomWidth: 0.5,
@@ -89,6 +127,7 @@ const styles = StyleSheet.create({
     width: 250,
     marginRight: 10,
   },
+
   infoValueRightUnderlined: {
     fontSize: 12,
     borderBottomWidth: 0.5,
@@ -144,7 +183,7 @@ const styles = StyleSheet.create({
   tableCell: {
     fontSize: 12,
     padding: 3,
-    textAlign: "center",
+    textAlign: "left",
     borderStyle: "solid",
     borderRightWidth: 1,
     borderRightColor: "#000",
@@ -163,23 +202,26 @@ const styles = StyleSheet.create({
   numberCell: {
     width: "6%",
   },
-  signatureRow: {
-    flexDirection: "row",
-    marginTop: 20,
-    justifyContent: "space-between",
-  },
-  signatureBox: {
-    width: "30%",
-  },
-  signatureLabel: {
-    fontSize: 12,
-    marginBottom: 20,
-  },
-  signatureLine: {
-    borderTopWidth: 1,
-    borderTopColor: "#000",
-    marginTop: 5,
-    marginBottom: 2,
+  // signatureRow: {
+  //   flexDirection: "column",
+  //   marginTop: 20,
+  //   justifyContent: "space-between",
+  // },
+  // signatureBox: {
+  //   width: "30%",
+  // },
+  // signatureLabel: {
+  //   fontSize: 12,
+  //   marginBottom: 20,
+  // },
+  // signatureLine: {
+  //   borderTopWidth: 1,
+  //   borderTopColor: "#000",
+  //   marginTop: 5,
+  //   marginBottom: 2,
+  // },
+  signatureMainCol: {
+    display: "flex",
   },
   footerImg: {
     maxWidth: "70%",
@@ -187,12 +229,15 @@ const styles = StyleSheet.create({
     marginRight: "auto",
   },
   smallText: {
-    fontSize: 12,
+    fontSize: 11,
   },
   boldText: {
     fontFamily: "Times-Bold",
     fontWeight: "bold",
   },
+  footer:{
+    marginTop: 40,
+  }
 });
 
 const RubricsPDF = ({ studentData, subjectName }) => {
@@ -222,15 +267,27 @@ const RubricsPDF = ({ studentData, subjectName }) => {
       order: 4,
     },
     {
+      title: "Interpret / Develop",
+      description: "(Factual/Conceptual/Procedural/Metacognitive)",
+      marks: 5,
+      order: 5,
+    },
+    {
       title: "Attitude towards learning",
       description:
         "(receiving, attending, responding, valuing, organizing, characterization by value)",
       marks: 5,
-      order: 5,
+      order: 6,
     },
+    {
+      title: "Non-verbal communication skills/ Behvaviour or Behavioural skills",
+      description:
+        "(motor skills, hand-eye coordination, gross body movements, finely coordindated body movements speech behaviours)",
+      marks: 5,
+      order: 7,
+    }
   ];
 
-  // Initialize with default criteria
   const [criteria, setCriteria] = useState(defaultCriteria);
 
   useEffect(() => {
@@ -279,7 +336,6 @@ const RubricsPDF = ({ studentData, subjectName }) => {
     fetchCriteria();
   }, [studentData?.subjectName]);
 
-  // Make sure we have criteria before rendering
   const rowData = (criteria || defaultCriteria).map((criterion, index) => ({
     title: `${index + 1}. ${criterion.title} (${criterion.marks})`,
     smallText: criterion.description,
@@ -388,7 +444,7 @@ const RubricsPDF = ({ studentData, subjectName }) => {
               <View style={[styles.tableHeaderCell, styles.indicatorCell]}>
                 <Text>Performance Indicators</Text>
                 <Text style={styles.smallText}>
-                  (Any no. of Indicators) (Maximum 5 marks per indicator)
+                  (Minimum 3 indicators)
                 </Text>
               </View>
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
@@ -403,9 +459,17 @@ const RubricsPDF = ({ studentData, subjectName }) => {
 
             {/* Course Outcomes Header */}
             <View style={styles.tableRow}>
-              <View style={[styles.tableHeaderCell, { width: "100%" }]}>
-                <Text>Course Outcomes</Text>
+              <View style={[styles.tableHeaderCell,styles.indicatorCell]}>
+                <Text>Course Outcome</Text>
               </View>
+              {[1, 1,1,1,1,1,1,1,1,1].map((num) => (
+                <View
+                  key={num}
+                  style={[styles.tableHeaderCell, styles.numberCell]}
+                >
+                  <Text>{num}</Text>
+                </View>
+              ))}
             </View>
 
             {/* Always render either custom or default criteria */}
@@ -440,22 +504,14 @@ const RubricsPDF = ({ studentData, subjectName }) => {
           </View>
 
           {/* Signature Row */}
-          <View style={styles.signatureRow}>
+          {/* <View style={styles.signatureRow}>
             <Text style={styles.signatureLabel}>
               Signature of the faculty member
             </Text>
-          </View>
-
-          {/* Grading Scale */}
-          <View>
-            <Text style={styles.smallText}>
-              Outstanding (5), Excellent (4), Good (3), Fair (2), Needs
-              Improvement (1)
-            </Text>
-          </View>
+          </View> */}
 
           {/* Signature Section */}
-          <View style={styles.signatureRow}>
+          {/* <View style={styles.signatureRow}>
             <View style={styles.signatureBox}>
               <Text style={styles.signatureLabel}>Sign of the Student:</Text>
               <View style={styles.signatureLine}></View>
@@ -478,10 +534,49 @@ const RubricsPDF = ({ studentData, subjectName }) => {
               <Text style={styles.signatureLabel}>Date:</Text>
               <View style={styles.signatureLine}></View>
             </View>
+          </View> */}
+
+          {/* <View>
+            <View style={styles.signatureMainCol}>
+              <Text>Sign of the student.</Text>
+              <Text>________</Text>
+            </View>
+            <View style={styles.signatureBox}>
+              <Text style={styles.signatureLabel}>Sign of the Student:</Text>
+              <View style={styles.signatureLine}></View>
+            </View>
+          </View> */}
+
+          <View style={styles.infoRowBottom}>
+            <View style={styles.infoItemBottom}>
+              <Text style={styles.infoLabelBottom}>Sign of the Student:</Text>
+              <Text style={styles.infoValueBottom}></Text>
+            </View>
+          </View>
+
+          <View style={styles.infoRowBottomTwo}>
+            <View style={styles.infoItemBottom}>
+              <Text style={styles.infoLabelBottom}>Signature of the Faculty member:</Text>
+              <Text style={styles.infoValueBottomNoUnderline}></Text>
+            </View>
+            <View style={styles.infoItemBottom}>
+              <Text style={styles.infoLabelBottom}>Signature of Head of the Department</Text>
+            </View>
+          </View>
+
+          <View style={styles.infoRowBottomTwo}>
+            <View style={styles.infoItemBottom}>
+              <Text style={styles.infoLabelBottom}>Name of the Faculty member:</Text>
+              <Text style={styles.infoValueBottom}></Text>
+            </View>
+            <View style={styles.infoItemBottom}>
+              <Text style={styles.infoLabelBottom}>Date:</Text>
+              <Text style={styles.infoValueBottom}></Text>
+            </View>
           </View>
 
           {/* Footer */}
-          <View>
+          <View style={styles.footer}>
             <Image src={RubricsBottom} style={styles.footerImg} />
           </View>
         </View>

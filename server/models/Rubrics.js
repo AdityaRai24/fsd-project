@@ -12,9 +12,13 @@ const criterionSchema = new Schema({
   marks: { 
     type: Number, 
     required: true,
-    min: 1,
-    max: 10,
+    min: 0,
+    max: 7,
     default: 5
+  },
+  isNull : {
+    type : Boolean,
+    default : false
   },
   order: {
     type: Number,
