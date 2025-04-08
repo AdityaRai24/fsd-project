@@ -317,7 +317,6 @@ const RubricsPDF = ({ studentData, subjectName }) => {
           rubricsResponse.data?.criteria &&
           rubricsResponse.data.criteria.length > 0
         ) {
-          console.log("7. Custom criteria found, using custom criteria");
           setCriteria(rubricsResponse.data.criteria);
         } else {
           console.log("8. No custom criteria found, using defaults");
@@ -331,8 +330,6 @@ const RubricsPDF = ({ studentData, subjectName }) => {
     fetchCriteria();
   }, [studentData?.subjectName]);
 
-  console.log(criteria);
-
   const rowData = (criteria || defaultCriteria).map((criterion, index) => ({
     title: `${index + 1}. ${criterion.title} (${criterion.marks})`,
     smallText: criterion.description,
@@ -344,6 +341,7 @@ const RubricsPDF = ({ studentData, subjectName }) => {
 
     const { title, smallText, marks } = rowInfo;
     const criterionMarks = criteria[rowIndex]?.marks || 0;
+
 
     return (
       <View style={styles.tableRow} key={rowIndex}>

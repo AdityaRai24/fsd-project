@@ -37,6 +37,7 @@ const DataTableComp = ({ editMode, setEditMode, experimentNo }) => {
   const [isRubricsModalOpen, setIsRubricsModalOpen] = useState(false);
   const [scoringType, setScoringType] = useState({});
   const [isSaving, setIsSaving] = useState(false);
+  const [criteria, setCriteria] = useState([]);
 
   const currentSubject = searchParams.get("sub") || "DevOps";
 
@@ -51,6 +52,53 @@ const DataTableComp = ({ editMode, setEditMode, experimentNo }) => {
     customMarks,
     setCustomMarks,
   } = useStudentData(currentSubject, experimentNo);
+
+  useEffect(() => {
+    const fetchCriteria = async () => {
+      try {
+        const subjectResponse = await axios.get(
+          `http://localhost:8000/api/subjects/name/${currentSubject}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        if (!subjectResponse.data?._id) return;
+
+        const subjectId = subjectResponse.data._id;
+
+        const rubricsResponse = await axios.get(
+          `http://localhost:8000/api/rubrics/${subjectId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
+        );
+
+        if (rubricsResponse.data?.criteria && rubricsResponse.data.criteria.length > 0) {
+          setCriteria(rubricsResponse.data.criteria);
+        } else {
+          // Use default criteria if no custom criteria found
+          setCriteria([
+            { title: "Knowledge", marks: 5, order: 1 },
+            { title: "Describe", marks: 5, order: 2 },
+            { title: "Demonstration", marks: 5, order: 3 },
+            { title: "Strategy", marks: 5, order: 4 },
+            { title: "Interpret / Develop", marks: 5, order: 5 },
+            { title: "Attitude", marks: 5, order: 6 },
+            { title: "Non-verbal Skills", marks: 5, order: 7 },
+          ]);
+        }
+      } catch (error) {
+        console.error("Error fetching criteria:", error);
+      }
+    };
+
+    fetchCriteria();
+  }, [currentSubject]);
 
   const handleMarksChange = (rowId, value, sectionId = null) => {
     if (sectionId) {
@@ -181,29 +229,62 @@ const DataTableComp = ({ editMode, setEditMode, experimentNo }) => {
     }
   };
 
-  // Function to distribute marks for overall changes only
   const distributeMarks = (totalMarks) => {
+
+
     // Ensure total marks is a number and round to prevent floating point issues
     totalMarks = Math.round(Number(totalMarks));
 
-    // Create an array of 5 sections
-    const marks = [0, 0, 0, 0, 0];
+    // Create an array with length matching criteria
+    const marks = new Array(criteria.length).fill(0);
 
-    // Calculate base marks per section
-    const baseMarks = Math.floor(totalMarks / 5);
-    let remainingMarks = totalMarks % 5;
+    // Get total maximum marks possible (sum of all criteria marks)
+    const totalMaxMarks = criteria.reduce((sum, criterion) => sum + (criterion.marks || 0), 0);
 
-    // Distribute base marks to all sections
-    marks.fill(baseMarks);
-
-    // Distribute remaining marks
-    for (let i = 0; remainingMarks > 0; i = (i + 1) % 5) {
-      marks[i]++;
-      remainingMarks--;
+    // If no marks are possible or no criteria, return array of zeros
+    if (totalMaxMarks === 0 || criteria.length === 0) {
+      return marks;
     }
 
-    // Make sure no mark exceeds 5
-    return marks.map((mark) => Math.min(mark, 5));
+    // Calculate the proportion of total marks each criterion should get
+    criteria.forEach((criterion, index) => {
+      if (criterion.marks === 0) {
+        marks[index] = 0;
+      } else {
+        // Calculate proportional marks for this criterion
+        const proportionalMarks = (totalMarks * criterion.marks) / totalMaxMarks;
+        // Round to nearest number and ensure it doesn't exceed criterion's max marks
+        marks[index] = Math.min(
+          Math.round(proportionalMarks),
+          criterion.marks
+        );
+      }
+    });
+
+    // Adjust for rounding errors to match total marks
+    const currentTotal = marks.reduce((sum, mark) => sum + mark, 0);
+    let difference = totalMarks - currentTotal;
+
+    // Distribute the difference
+    while (difference !== 0) {
+      for (let i = 0; i < marks.length && difference !== 0; i++) {
+        if (criteria[i].marks === 0) continue; // Skip criteria with 0 marks
+
+        if (difference > 0 && marks[i] < criteria[i].marks) {
+          marks[i]++;
+          difference--;
+        } else if (difference < 0 && marks[i] > 0) {
+          marks[i]--;
+          difference++;
+        }
+      }
+      // Break if we can't distribute any more
+      if (difference !== 0 && marks.every((mark, i) => 
+        mark === (difference > 0 ? criteria[i].marks : 0)
+      )) break;
+    }
+
+    return marks;
   };
 
   const handleViewRubrics = (student) => {

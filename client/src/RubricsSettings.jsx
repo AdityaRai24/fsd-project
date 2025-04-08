@@ -153,46 +153,45 @@ const RubricsSettings = () => {
 
   const handleSave = async () => {
 
-    console.log(criteria);
 
-    // setIsSaving(true);
-    // setError("");
-    // setSuccess("");
+    setIsSaving(true);
+    setError("");
+    setSuccess("");
 
-    // try {
-    //   if (!subjectId) {
-    //     throw new Error("No subject selected");
-    //   }
+    try {
+      if (!subjectId) {
+        throw new Error("No subject selected");
+      }
 
-    //   const orderedCriteria = criteria.map((criterion, index) => ({
-    //     ...criterion,
-    //     order: index + 1,
-    //   }));
+      const orderedCriteria = criteria.map((criterion, index) => ({
+        ...criterion,
+        order: index + 1,
+      }));
 
-    //   const response = await axios.post(
-    //     "http://localhost:8000/api/rubrics",
-    //     {
-    //       subject: subjectId,
-    //       criteria: orderedCriteria,
-    //     },
-    //     {
-    //       headers: {
-    //         Authorization: `Bearer ${localStorage.getItem("token")}`,
-    //       },
-    //     }
-    //   );
+      const response = await axios.post(
+        "http://localhost:8000/api/rubrics",
+        {
+          subject: subjectId,
+          criteria: orderedCriteria,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
 
-    //   setSuccess("Rubrics criteria updated successfully!");
-    // } catch (err) {
-    //   const errorMessage =
-    //     err.response?.data?.message ||
-    //     err.message ||
-    //     "Failed to update rubrics criteria";
-    //   setError(errorMessage);
-    //   console.error("Error:", err);
-    // } finally {
-    //   setIsSaving(false);
-    // }
+      setSuccess("Rubrics criteria updated successfully!");
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to update rubrics criteria";
+      setError(errorMessage);
+      console.error("Error:", err);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   useEffect(() => {

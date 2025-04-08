@@ -105,8 +105,6 @@ const TeacherDashboard = () => {
     );
   }
 
-  console.log({experiment})
-
   return (
     <SidebarProvider>
       <Toaster position="top-center" />

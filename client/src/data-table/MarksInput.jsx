@@ -12,14 +12,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const sections = [
-  { id: "section1", name: "Understanding", max: 5 },
-  { id: "section2", name: "Implementation", max: 5 },
-  { id: "section3", name: "Execution", max: 5 },
-  { id: "section4", name: "Output", max: 5 },
-  { id: "section5", name: "Viva", max: 5 },
-];
-
 const MarksInput = ({
   row,
   scoringType,
@@ -34,20 +26,23 @@ const MarksInput = ({
   disabled = false,
 }) => {
   const [criteria, setCriteria] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const currentScoringType = scoringType[row.id] || "overall";
   const student = row.original;
 
-  console.log(student);
-
-  // Fetch criteria based on subject
+  // Fetch criteria based on subject - only run once on mount
   useEffect(() => {
     const fetchCriteria = async () => {
+      setIsLoading(true);
       try {
         // Get subject name from local storage or wherever it's stored in your app
         const allData = JSON.parse(localStorage.getItem("allData"));
         const subjectName = allData?.batches[0]?.subjects[0]?.name;
 
-        if (!subjectName) return;
+        if (!subjectName) {
+          setIsLoading(false);
+          return;
+        }
 
         const subjectResponse = await axios.get(
           `http://localhost:8000/api/subjects/name/${subjectName}`,
@@ -58,7 +53,10 @@ const MarksInput = ({
           }
         );
 
-        if (!subjectResponse.data?._id) return;
+        if (!subjectResponse.data?._id) {
+          setIsLoading(false);
+          return;
+        }
 
         const subjectId = subjectResponse.data._id;
 
@@ -90,15 +88,19 @@ const MarksInput = ({
         }
       } catch (error) {
         console.error("Error fetching criteria:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchCriteria();
-  }, []);
+  }, []); // Empty dependency array means this only runs once
 
   // Initialize section marks from student data if they don't exist yet
   useEffect(() => {
     if (
+      !isLoading &&
+      criteria.length > 0 &&
       currentScoringType === "individual" &&
       (!sectionMarks[row.id] || Object.keys(sectionMarks[row.id]).length === 0)
     ) {
@@ -108,7 +110,7 @@ const MarksInput = ({
       if (student.marks && Array.isArray(student.marks)) {
         criteria.forEach((criterion, index) => {
           initialSectionMarks[`section${index + 1}`] =
-            student.marks[index] || 0;
+            criterion.marks === 0 ? "--" : student.marks[index] || 0;
         });
 
         setSectionMarks((prev) => ({
@@ -117,38 +119,82 @@ const MarksInput = ({
         }));
       }
     }
-  }, [
-    currentScoringType,
-    row.id,
-    student.marks,
-    sectionMarks,
-    setSectionMarks,
-    criteria,
-  ]);
+  }, [currentScoringType, row.id, student.marks, criteria, isLoading]);
 
   // Calculate total for section marks
   const calculateSectionTotal = () => {
     if (!sectionMarks[row.id]) return 0;
 
     return Object.values(sectionMarks[row.id]).reduce(
-      (sum, mark) => sum + Number(mark || 0),
+      (sum, mark) => sum + (mark === "--" ? 0 : Number(mark || 0)),
       0
     );
   };
 
-  // Get the value for a section input
+  // Get maximum possible total (sum of all non-zero criteria marks)
+  const getMaximumPossibleTotal = () => {
+    return criteria.reduce((sum, criterion) => sum + (criterion.marks || 0), 0);
+  };
+
+  // Get the value for a section input - memoized to prevent recalculations
   const getSectionValue = (sectionId) => {
+    const index = parseInt(sectionId.replace("section", "")) - 1;
+    const criterion = criteria[index];
+
+    // If criterion has zero marks, always return "--"
+    if (criterion && criterion.marks === 0) {
+      return "--";
+    }
+
     // First check if there's a user-modified value
     if (sectionMarks[row.id]?.[sectionId] !== undefined) {
       return sectionMarks[row.id][sectionId];
     }
 
     // If not, look up the original value from student marks
-    const index = parseInt(sectionId.replace("section", "")) - 1;
     return student.marks && student.marks[index] !== undefined
       ? student.marks[index]
       : 0;
   };
+
+  // Handle scoring type change
+  const handleScoringTypeChange = (value) => {
+    setScoringType((prev) => ({ ...prev, [row.id]: value }));
+
+    if (value === "overall") {
+      setSectionMarks((prev) => ({ ...prev, [row.id]: {} }));
+    } else {
+      // Initialize section marks when switching to individual mode
+      const initialSectionMarks = {};
+      if (student.marks && Array.isArray(student.marks)) {
+        criteria.forEach((criterion, index) => {
+          initialSectionMarks[`section${index + 1}`] =
+            criterion.marks === 0 ? "--" : student.marks[index] || 0;
+        });
+      }
+
+      setSectionMarks((prev) => ({
+        ...prev,
+        [row.id]: initialSectionMarks,
+      }));
+
+      setCustomMarks((prev) => {
+        const newMarks = { ...prev };
+        delete newMarks[row.id];
+        return newMarks;
+      });
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Card className="w-full shadow-sm border-gray-100">
+        <CardContent className="py-8 px-4 flex justify-center">
+          <div className="text-gray-500">Loading assessment...</div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full shadow-sm border-gray-100">
@@ -160,32 +206,7 @@ const MarksInput = ({
       <CardContent className="space-y-4 pb-4 px-4">
         <RadioGroup
           value={currentScoringType}
-          onValueChange={(value) => {
-            setScoringType((prev) => ({ ...prev, [row.id]: value }));
-            if (value === "overall") {
-              setSectionMarks((prev) => ({ ...prev, [row.id]: {} }));
-            } else {
-              // Initialize section marks when switching to individual mode
-              const initialSectionMarks = {};
-              if (student.marks && Array.isArray(student.marks)) {
-                criteria.forEach((criterion, index) => {
-                  initialSectionMarks[`section${index + 1}`] =
-                    student.marks[index] || 0;
-                });
-
-                setSectionMarks((prev) => ({
-                  ...prev,
-                  [row.id]: initialSectionMarks,
-                }));
-              }
-
-              setCustomMarks((prev) => {
-                const newMarks = { ...prev };
-                delete newMarks[row.id];
-                return newMarks;
-              });
-            }
-          }}
+          onValueChange={handleScoringTypeChange}
           className="flex items-center gap-4 mb-2 bg-gray-50 p-2 rounded-md"
           disabled={disabled}
         >
@@ -258,7 +279,7 @@ const MarksInput = ({
               <Input
                 type="number"
                 min="0"
-                max="25"
+                max={getMaximumPossibleTotal()}
                 value={
                   customMarks[row.id] !== undefined
                     ? customMarks[row.id]
@@ -269,7 +290,9 @@ const MarksInput = ({
                 disabled={disabled}
               />
             )}
-            <span className="text-sm text-gray-500 ml-1">/ 25</span>
+            <span className="text-sm text-gray-500 ml-1">
+              / {getMaximumPossibleTotal()}
+            </span>
           </div>
         ) : (
           <div className="space-y-2 bg-white p-3 rounded-md border border-gray-100">
@@ -287,29 +310,28 @@ const MarksInput = ({
                   {criterion.title}
                 </Label>
                 <div className="flex items-center gap-2">
-                  <Input
-                    id={`section${index + 1}-${row.id}`}
-                    type="number"
-                    min="0"
-                    max={criterion.marks}
-                    value={
-                      criterion.marks === 0
-                        ? "-"
-                        : getSectionValue(`section${index + 1}`)
-                    }
-                    onChange={(e) =>
-                      handleMarksChange(
-                        row.id,
-                        e.target.value,
-                        `section${index + 1}`
-                      )
-                    }
-                    className={`w-16 text-center bg-white border-gray-200 ${
-                      criterion.marks === 0 ? "opacity-50" : ""
-                    }`}
-                    disabled={disabled || criterion.marks === 0}
-                    placeholder={criterion.marks === 0 ? "-" : ""}
-                  />
+                  {criterion.marks === 0 ? (
+                    <div className="w-16 text-center bg-gray-100 rounded-md py-1 px-2 text-gray-500 font-medium">
+                      --
+                    </div>
+                  ) : (
+                    <Input
+                      id={`section${index + 1}-${row.id}`}
+                      type="number"
+                      min="0"
+                      max={criterion.marks}
+                      value={getSectionValue(`section${index + 1}`)}
+                      onChange={(e) =>
+                        handleMarksChange(
+                          row.id,
+                          e.target.value,
+                          `section${index + 1}`
+                        )
+                      }
+                      className="w-16 text-center bg-white border-gray-200"
+                      disabled={disabled || criterion.marks === 0}
+                    />
+                  )}
                   <span className="text-xs text-gray-500 min-w-8">
                     / {criterion.marks}
                   </span>
@@ -320,7 +342,9 @@ const MarksInput = ({
               <span className="text-sm font-medium">Total Score</span>
               <div className="font-medium text-blue-600">
                 {calculateSectionTotal()}{" "}
-                <span className="text-gray-500 text-sm">/ 25</span>
+                <span className="text-gray-500 text-sm">
+                  / {getMaximumPossibleTotal()}
+                </span>
               </div>
             </div>
           </div>

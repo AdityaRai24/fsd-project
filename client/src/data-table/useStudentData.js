@@ -42,7 +42,6 @@ const useStudentData = (currentSubject) => {
         const subjectData = currentBatch.subjects.find(
           (subject) => subject.name === currentSubject
         );
-        console.log({currentBatch,students,subjectData})
 
         if (!subjectData && isMounted) {
           setIsLoading(false);
@@ -81,8 +80,6 @@ const useStudentData = (currentSubject) => {
             remarks: experimentData?.remarks || "",
           };
         });
-
-        console.log({formattedData})
 
 
         if (isMounted) {
