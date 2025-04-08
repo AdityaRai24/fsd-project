@@ -284,6 +284,7 @@ const RubricsPDF = ({ studentData, subjectName }) => {
   ];
 
   const [criteria, setCriteria] = useState(defaultCriteria);
+  const [courseOutcomes, setCourseOutcomes] = useState(Array(10).fill(1));
 
   useEffect(() => {
     const fetchCriteria = async () => {
@@ -321,6 +322,10 @@ const RubricsPDF = ({ studentData, subjectName }) => {
         } else {
           console.log("8. No custom criteria found, using defaults");
           setCriteria(defaultCriteria);
+        }
+
+        if (rubricsResponse.data?.courseOutcomes) {
+          setCourseOutcomes(rubricsResponse.data.courseOutcomes);
         }
       } catch (error) {
         setCriteria(defaultCriteria);
@@ -446,12 +451,12 @@ const RubricsPDF = ({ studentData, subjectName }) => {
               <View style={[styles.tableHeaderCell, styles.indicatorCell]}>
                 <Text>Course Outcome</Text>
               </View>
-              {[1, 1, 1, 1, 1, 1, 1, 1, 1, 1].map((num) => (
+              {courseOutcomes.map((co, index) => (
                 <View
-                  key={num}
+                  key={index}
                   style={[styles.tableHeaderCell, styles.numberCell]}
                 >
-                  <Text>{num}</Text>
+                  <Text>{co}</Text>
                 </View>
               ))}
             </View>

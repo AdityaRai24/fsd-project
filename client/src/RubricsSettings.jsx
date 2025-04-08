@@ -7,6 +7,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import axios from "axios";
 import { useParams, useNavigate } from "react-router-dom";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 const RubricsSettings = () => {
   const { subjectId } = useParams();
@@ -73,6 +79,8 @@ const RubricsSettings = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  const [courseOutcomes, setCourseOutcomes] = useState(Array(10).fill(1));
+
   const handleCriteriaChange = (index, field, value) => {
     const newCriteria = [...criteria];
     newCriteria[index] = { ...newCriteria[index], [field]: value };
@@ -116,6 +124,12 @@ const RubricsSettings = () => {
     }
   };
 
+  const handleCourseOutcomeChange = (index, value) => {
+    const newOutcomes = [...courseOutcomes];
+    newOutcomes[index] = parseInt(value);
+    setCourseOutcomes(newOutcomes);
+  };
+
   useEffect(() => {
     const fetchRubrics = async () => {
       try {
@@ -152,11 +166,10 @@ const RubricsSettings = () => {
   }, [subjectId]);
 
   const handleSave = async () => {
-
-
     setIsSaving(true);
     setError("");
     setSuccess("");
+    const courseOutcomes2 = courseOutcomes.map((co) => parseInt(co));
 
     try {
       if (!subjectId) {
@@ -168,11 +181,14 @@ const RubricsSettings = () => {
         order: index + 1,
       }));
 
+      console.log(courseOutcomes2);
+
       const response = await axios.post(
         "http://localhost:8000/api/rubrics",
         {
           subject: subjectId,
           criteria: orderedCriteria,
+          courseOutcomes: courseOutcomes2,
         },
         {
           headers: {
@@ -248,129 +264,173 @@ const RubricsSettings = () => {
 
         <div className="bg-white rounded-lg shadow">
           <div className="p-6">
-            <div className="mb-6">
-              <h2 className="text-lg font-medium text-gray-900 mb-2">
-                Assessment Criteria
-              </h2>
-              <p className="text-sm text-gray-500">
-                Customize the assessment criteria for student evaluations. Each
-                criterion can have a title, description, and maximum marks. Mark
-                criteria as "Not Applicable" if they shouldn't be included in
-                the assessment.
-              </p>
-            </div>
-
-            <div className="space-y-6">
-              {criteria.map((criterion, index) => (
-                <div key={index} className="p-4 border rounded-lg bg-gray-50">
-                  <div className="flex items-start justify-between mb-4">
-                    <span className="bg-gray-200 text-gray-700 text-sm font-medium px-2 py-1 rounded">
-                      Criterion {index + 1}
-                    </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeCriteria(index)}
-                      disabled={criteria.length === 1}
-                      className="text-red-500 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-
-                  <div className="grid gap-4">
-                    <div>
-                      <Label htmlFor={`title-${index}`}>Title</Label>
-                      <Input
-                        id={`title-${index}`}
-                        value={criterion.title}
-                        onChange={(e) =>
-                          handleCriteriaChange(index, "title", e.target.value)
-                        }
-                        placeholder="Enter criterion title"
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div>
-                      <Label htmlFor={`description-${index}`}>
-                        Description
-                      </Label>
-                      <Textarea
-                        id={`description-${index}`}
-                        value={criterion.description}
-                        onChange={(e) =>
-                          handleCriteriaChange(
-                            index,
-                            "description",
-                            e.target.value
-                          )
-                        }
-                        placeholder="Enter criterion description"
-                        className="mt-1"
-                      />
-                    </div>
-
-                    <div className="flex flex-col space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <Checkbox
-                          id={`isNull-${index}`}
-                          checked={criterion.isNull}
-                          onCheckedChange={(checked) =>
-                            handleNullChange(index, checked)
-                          }
-                        />
-                        <Label
-                          htmlFor={`isNull-${index}`}
-                          className="text-sm text-gray-700"
-                        >
-                          Not Applicable
-                        </Label>
-                      </div>
-
-                      <div className="flex items-center space-x-4">
-                        <div>
-                          <Label htmlFor={`marks-${index}`}>
-                            Maximum Marks
+            <Accordion type="multiple" className="space-y-4">
+              {/* Course Outcomes Section */}
+              <AccordionItem value="course-outcomes">
+                <AccordionTrigger className="text-lg font-medium text-gray-900 hover:no-underline">
+                  Course Outcomes Configuration
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="p-4 bg-gray-50 rounded-lg mt-4">
+                    <p className="text-sm text-gray-500 mb-4">
+                      Specify the Course Outcome (CO) number for each experiment. This will be displayed in the rubrics PDF.
+                    </p>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                      {courseOutcomes.map((co, index) => (
+                        <div key={index} className="space-y-2">
+                          <Label htmlFor={`co-${index + 1}`} className="text-sm">
+                            Experiment {index + 1}
                           </Label>
                           <Input
-                            id={`marks-${index}`}
+                            id={`co-${index + 1}`}
                             type="number"
-                            value={criterion.isNull ? 0 : criterion.marks}
-                            onChange={(e) =>
-                              handleCriteriaChange(
-                                index,
-                                "marks",
-                                parseInt(e.target.value)
-                              )
-                            }
                             min="1"
-                            max="7"
-                            className="mt-1 w-24"
-                            disabled={criterion.isNull}
+                            max="6"
+                            value={co}
+                            onChange={(e) => handleCourseOutcomeChange(index, e.target.value)}
+                            className="w-full"
                           />
                         </div>
-                        {criterion.isNull && (
-                          <span className="text-sm text-gray-500 italic mt-6">
-                            This criterion will not be included in assessment
-                          </span>
-                        )}
-                      </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-4">
+                      Note: Course Outcomes should be numbers between 1 and 6
+                    </p>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Assessment Criteria Section */}
+              <AccordionItem value="assessment-criteria">
+                <AccordionTrigger className="text-lg font-medium text-gray-900 hover:no-underline">
+                  Assessment Criteria
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4">
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <p className="text-sm text-gray-500">
+                        Customize the assessment criteria for student evaluations. Each
+                        criterion can have a title, description, and maximum marks. Mark
+                        criteria as "Not Applicable" if they shouldn't be included in
+                        the assessment.
+                      </p>
+                    </div>
+
+                    <div className="space-y-6">
+                      {criteria.map((criterion, index) => (
+                        <div key={index} className="p-4 border rounded-lg bg-gray-50">
+                          <div className="flex items-start justify-between mb-4">
+                            <span className="bg-gray-200 text-gray-700 text-sm font-medium px-2 py-1 rounded">
+                              Criterion {index + 1}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeCriteria(index)}
+                              disabled={criteria.length === 1}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+
+                          <div className="grid gap-4">
+                            <div>
+                              <Label htmlFor={`title-${index}`}>Title</Label>
+                              <Input
+                                id={`title-${index}`}
+                                value={criterion.title}
+                                onChange={(e) =>
+                                  handleCriteriaChange(index, "title", e.target.value)
+                                }
+                                placeholder="Enter criterion title"
+                                className="mt-1"
+                              />
+                            </div>
+
+                            <div>
+                              <Label htmlFor={`description-${index}`}>
+                                Description
+                              </Label>
+                              <Textarea
+                                id={`description-${index}`}
+                                value={criterion.description}
+                                onChange={(e) =>
+                                  handleCriteriaChange(
+                                    index,
+                                    "description",
+                                    e.target.value
+                                  )
+                                }
+                                placeholder="Enter criterion description"
+                                className="mt-1"
+                              />
+                            </div>
+
+                            <div className="flex flex-col space-y-2">
+                              <div className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={`isNull-${index}`}
+                                  checked={criterion.isNull}
+                                  onCheckedChange={(checked) =>
+                                    handleNullChange(index, checked)
+                                  }
+                                />
+                                <Label
+                                  htmlFor={`isNull-${index}`}
+                                  className="text-sm text-gray-700"
+                                >
+                                  Not Applicable
+                                </Label>
+                              </div>
+
+                              <div className="flex items-center space-x-4">
+                                <div>
+                                  <Label htmlFor={`marks-${index}`}>
+                                    Maximum Marks
+                                  </Label>
+                                  <Input
+                                    id={`marks-${index}`}
+                                    type="number"
+                                    value={criterion.isNull ? 0 : criterion.marks}
+                                    onChange={(e) =>
+                                      handleCriteriaChange(
+                                        index,
+                                        "marks",
+                                        parseInt(e.target.value)
+                                      )
+                                    }
+                                    min="1"
+                                    max="7"
+                                    className="mt-1 w-24"
+                                    disabled={criterion.isNull}
+                                  />
+                                </div>
+                                {criterion.isNull && (
+                                  <span className="text-sm text-gray-500 italic mt-6">
+                                    This criterion will not be included in assessment
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      <Button
+                        onClick={addCriteria}
+                        disabled={criteria.length >= 10}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add New Criterion
+                      </Button>
                     </div>
                   </div>
-                </div>
-              ))}
-
-              <Button
-                onClick={addCriteria}
-                disabled={criteria.length >= 10}
-                variant="outline"
-                className="w-full"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add New Criterion
-              </Button>
-            </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         </div>
       </div>

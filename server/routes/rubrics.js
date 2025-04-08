@@ -7,8 +7,7 @@ const router = express.Router();
 // Create or update rubrics for a subject
 router.post("/", async (req, res) => {
   try {
-    const { subject, criteria } = req.body;
-    console.log(subject, criteria);
+    const { subject, criteria,courseOutcomes } = req.body;
 
     // Validate subject ID
     if (!subject || !mongoose.Types.ObjectId.isValid(subject)) {
@@ -32,6 +31,7 @@ router.post("/", async (req, res) => {
     if (rubrics) {
       // Update existing rubrics
       rubrics.criteria = criteria;
+      rubrics.courseOutcomes = courseOutcomes;
       rubrics.updatedAt = Date.now();
       await rubrics.save();
     } else {
@@ -39,6 +39,7 @@ router.post("/", async (req, res) => {
       rubrics = await Rubrics.create({
         subject,
         criteria,
+        courseOutcomes,
       });
     }
 
