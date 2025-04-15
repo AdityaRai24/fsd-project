@@ -290,7 +290,7 @@ const RubricsPDF = ({ studentData, subjectName }) => {
     const fetchCriteria = async () => {
       try {
         const subjectResponse = await axios.get(
-          `http://localhost:8000/api/subjects/name/${subjectName}`,
+          `https://rubricslab.onrender.com/api/subjects/name/${subjectName}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -306,7 +306,7 @@ const RubricsPDF = ({ studentData, subjectName }) => {
         const subjectId = subjectResponse.data._id;
 
         const rubricsResponse = await axios.get(
-          `http://localhost:8000/api/rubrics/${subjectId}`,
+          `https://rubricslab.onrender.com/api/rubrics/${subjectId}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,

@@ -57,7 +57,7 @@ const DataTableComp = ({ editMode, setEditMode, experimentNo }) => {
     const fetchCriteria = async () => {
       try {
         const subjectResponse = await axios.get(
-          `http://localhost:8000/api/subjects/name/${currentSubject}`,
+          `https://rubricslab.onrender.com/api/subjects/name/${currentSubject}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -70,7 +70,7 @@ const DataTableComp = ({ editMode, setEditMode, experimentNo }) => {
         const subjectId = subjectResponse.data._id;
 
         const rubricsResponse = await axios.get(
-          `http://localhost:8000/api/rubrics/${subjectId}`,
+          `https://rubricslab.onrender.com/api/rubrics/${subjectId}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -196,7 +196,7 @@ const DataTableComp = ({ editMode, setEditMode, experimentNo }) => {
       }
 
       const response = await axios.post(
-        "http://localhost:8000/api/students/update-marks",
+        "https://rubricslab.onrender.com/api/students/update-marks",
         allChanges
       );
 

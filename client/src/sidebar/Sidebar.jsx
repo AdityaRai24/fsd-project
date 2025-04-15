@@ -141,7 +141,7 @@ export function AppSidebar({ teacher, ...props }) {
         const currentBatch = allData.batches[0];
 
         const response = await axios.get(
-          `http://localhost:8000/api/experiments?subject=${activeTeam.name}&batch=${currentBatch._id}`,
+          `https://rubricslab.onrender.com/api/experiments?subject=${activeTeam.name}&batch=${currentBatch._id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -189,7 +189,7 @@ export function AppSidebar({ teacher, ...props }) {
         const currentBatch = allData.batches[0];
 
         const response = await axios.post(
-          "http://localhost:8000/api/experiments",
+          "https://rubricslab.onrender.com/api/experiments",
           {
             name: newExperimentName.trim(),
             subject: activeTeam.name,
@@ -224,7 +224,7 @@ export function AppSidebar({ teacher, ...props }) {
       const experiment = experiments[experimentToDelete.index];
 
       await axios.delete(
-        `http://localhost:8000/api/experiments/${experiment._id}`,
+        `https://rubricslab.onrender.com/api/experiments/${experiment._id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -250,7 +250,7 @@ export function AppSidebar({ teacher, ...props }) {
     }
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/subjects/name/${subject}`,
+        `https://rubricslab.onrender.com/api/subjects/name/${subject}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,

@@ -21,7 +21,7 @@ const TeacherDash = () => {
 
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/teachers/${teacherId}`,
+        `https://rubricslab.onrender.com/api/teachers/${teacherId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

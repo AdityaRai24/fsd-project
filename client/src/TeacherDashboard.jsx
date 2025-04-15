@@ -39,7 +39,7 @@ const TeacherDashboard = () => {
 
     try {
       const response = await axios.get(
-        `http://localhost:8000/api/teachers/${teacherId}`,
+        `https://rubricslab.onrender.com/api/teachers/${teacherId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -57,7 +57,7 @@ const TeacherDashboard = () => {
 
   const fetchExperimentData = async () => {
     const response = await axios.get(
-      `http://localhost:8000/api/experiments/${experimentNo}`
+      `https://rubricslab.onrender.com/api/experiments/${experimentNo}`
     );
     setExperiment(response.data);
   };
@@ -66,7 +66,7 @@ const TeacherDashboard = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `http://localhost:8000/api/teachers/${teacher?._id}/subjects`,
+        `https://rubricslab.onrender.com/api/teachers/${teacher?._id}/subjects`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

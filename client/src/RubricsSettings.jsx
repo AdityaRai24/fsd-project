@@ -139,7 +139,7 @@ const RubricsSettings = () => {
         }
 
         const response = await axios.get(
-          `http://localhost:8000/api/rubrics/${subjectId}`,
+          `https://rubricslab.onrender.com/api/rubrics/${subjectId}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -188,7 +188,7 @@ const RubricsSettings = () => {
       console.log(courseOutcomes2);
 
       const response = await axios.post(
-        "http://localhost:8000/api/rubrics",
+        "https://rubricslab.onrender.com/api/rubrics",
         {
           subject: subjectId,
           criteria: orderedCriteria,

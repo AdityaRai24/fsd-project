@@ -25,7 +25,7 @@ const ViewStudents = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          `http://localhost:8000/api/students/subject/${subject}`,
+          `https://rubricslab.onrender.com/api/students/subject/${subject}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
