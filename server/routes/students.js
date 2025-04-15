@@ -1,8 +1,6 @@
 import express from "express";
 import Student from "../models/Students.js";
-import Batch from "../models/Batch.js";
 import Subject from "../models/subject.js";
-import Experiment from "../models/Experiment.js";
 
 const router = express.Router();
 

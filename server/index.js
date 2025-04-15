@@ -10,7 +10,6 @@ import studentRoutes from "./routes/students.js";
 import experimentRoutes from "./routes/experiment.js";
 import rubricsRouter from './routes/rubrics.js';
 import subjectsRouter from './routes/subjects.js';
-import experimentsRouter from './routes/experiments.js';
 import teachersRouter from './routes/teacher.js';
 
 

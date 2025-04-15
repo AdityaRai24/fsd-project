@@ -1,9 +1,5 @@
 import express from "express";
 import Teacher from "../models/Teachers.js";
-import Batch from "../models/Batch.js";
-import Subject from "../models/subject.js";
-import Experiment from "../models/Experiment.js";
-import Student from "../models/Students.js";
 import TeacherAssignment from "../models/TeacherAssignment.js";
 import mongoose from "mongoose";
 
