@@ -1,6 +1,6 @@
 import express from "express";
 import Student from "../models/Students.js";
-import Subject from "../models/subject.js";
+import Subject from "../models/Subject.js";
 
 const router = express.Router();
 
