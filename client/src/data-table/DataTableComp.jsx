@@ -81,7 +81,6 @@ const DataTableComp = ({ editMode, setEditMode, experimentNo }) => {
         if (rubricsResponse.data?.criteria && rubricsResponse.data.criteria.length > 0) {
           setCriteria(rubricsResponse.data.criteria);
         } else {
-          // Use default criteria if no custom criteria found
           setCriteria([
             { title: "Knowledge", marks: 5, order: 1 },
             { title: "Describe", marks: 5, order: 2 },
@@ -231,8 +230,6 @@ const DataTableComp = ({ editMode, setEditMode, experimentNo }) => {
 
   const distributeMarks = (totalMarks) => {
 
-
-    // Ensure total marks is a number and round to prevent floating point issues
     totalMarks = Math.round(Number(totalMarks));
 
     // Create an array with length matching criteria
@@ -300,8 +297,6 @@ const DataTableComp = ({ editMode, setEditMode, experimentNo }) => {
     }
   }, [editMode]);
 
-  // If the useStudentData hook doesn't reset data when params change,
-  // we need to add a clean-up here:
   useEffect(() => {
     // Reset local state when subject or experiment changes
     setCustomMarks({});
@@ -400,7 +395,6 @@ const DataTableComp = ({ editMode, setEditMode, experimentNo }) => {
     },
   });
 
-  // Render loading state
   if (loading) {
     return (
       <div className="max-w-[80%] mx-auto flex items-center justify-center h-64">
@@ -412,7 +406,6 @@ const DataTableComp = ({ editMode, setEditMode, experimentNo }) => {
     );
   }
 
-  // Render error state
   if (error) {
     return (
       <div className="max-w-[80%] mx-auto p-4 border border-red-200 rounded-md bg-red-50 text-center my-4">

@@ -1,8 +1,6 @@
 import React from "react";
 
-// Basic spinner component with customizable size and color
 export const Spinner = ({ className = "", size = "md", color = "primary" }) => {
-  // Calculate size classes
   const sizeClasses = {
     sm: "h-4 w-4",
     md: "h-6 w-6",
@@ -10,7 +8,6 @@ export const Spinner = ({ className = "", size = "md", color = "primary" }) => {
     xl: "h-12 w-12",
   };
 
-  // Calculate color classes
   const colorClasses = {
     primary: "text-blue-600",
     secondary: "text-gray-600",
@@ -50,5 +47,4 @@ export const Spinner = ({ className = "", size = "md", color = "primary" }) => {
   );
 };
 
-// Exporting as both default and named export
 export default Spinner;

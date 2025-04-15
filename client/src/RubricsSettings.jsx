@@ -156,6 +156,10 @@ const RubricsSettings = () => {
           }));
           setCriteria(fetchedCriteria);
         }
+
+        if (response.data?.courseOutcomes) {
+          setCourseOutcomes(response.data.courseOutcomes);
+        }
       } catch (error) {
         console.error("Failed to fetch rubrics:", error);
         setError("Failed to fetch rubrics settings");

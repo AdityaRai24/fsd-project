@@ -4,6 +4,7 @@ import axios from "axios";
 import { PDFDownloadLink, PDFViewer } from "@react-pdf/renderer";
 import RubricsPDF from "./components/RubricsPDF";
 import { Download, Eye, ArrowLeft } from "lucide-react";
+import toast from "react-hot-toast";
 
 const SubjectRubrics = () => {
   const params = useParams();
@@ -74,7 +75,7 @@ const SubjectRubrics = () => {
             Preview
           </button>
           <button
-            onClick={() => setActiveView("download")}
+            onClick={() => toast.error("All Experiments have not been graded yet.")}
             className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${
               activeView === "download"
                 ? "bg-gray-900 text-white"
@@ -89,7 +90,7 @@ const SubjectRubrics = () => {
 
       <div className="h-[calc(100vh-64px)]">
         {activeView === "preview" ? (
-          <PDFViewer width="100%" height="100%" className="border-0">
+          <PDFViewer showToolbar={false} width="100%" height="100%" className="border-0">
             <RubricsPDF studentData={rubricsData} subjectName={rubricsData.subjectName} />
           </PDFViewer>
         ) : (

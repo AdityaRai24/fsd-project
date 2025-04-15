@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -26,21 +26,45 @@ const MarksInput = ({
   disabled = false,
 }) => {
   const [criteria, setCriteria] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const currentScoringType = scoringType[row.id] || "overall";
   const student = row.original;
+  const dataFetched = useRef(false);
+
+  // Default criteria used if API fails or before loading completes
+  const defaultCriteria = [
+    { title: "Knowledge", marks: 5, order: 1 },
+    { title: "Describe", marks: 5, order: 2 },
+    { title: "Demonstration", marks: 5, order: 3 },
+    { title: "Strategy", marks: 5, order: 4 },
+    { title: "Interpret / Develop", marks: 5, order: 5 },
+    { title: "Attitude", marks: 5, order: 6 },
+    { title: "Non-verbal Skills", marks: 5, order: 7 },
+  ];
+
+  // Initialize with default criteria to prevent layout shifts
+  useEffect(() => {
+    if (criteria.length === 0) {
+      setCriteria(defaultCriteria);
+    }
+  }, []);
 
   // Fetch criteria based on subject - only run once on mount
   useEffect(() => {
+    // Prevent re-fetching if data was already fetched
+    if (dataFetched.current) {
+      return;
+    }
+
     const fetchCriteria = async () => {
-      setIsLoading(true);
+      dataFetched.current = true; // Mark as fetched to prevent future calls
+
       try {
         // Get subject name from local storage or wherever it's stored in your app
         const allData = JSON.parse(localStorage.getItem("allData"));
         const subjectName = allData?.batches[0]?.subjects[0]?.name;
 
         if (!subjectName) {
-          setIsLoading(false);
           return;
         }
 
@@ -54,7 +78,6 @@ const MarksInput = ({
         );
 
         if (!subjectResponse.data?._id) {
-          setIsLoading(false);
           return;
         }
 
@@ -74,22 +97,11 @@ const MarksInput = ({
           rubricsResponse.data.criteria.length > 0
         ) {
           setCriteria(rubricsResponse.data.criteria);
-        } else {
-          // Use default criteria if no custom criteria found
-          setCriteria([
-            { title: "Knowledge", marks: 5, order: 1 },
-            { title: "Describe", marks: 5, order: 2 },
-            { title: "Demonstration", marks: 5, order: 3 },
-            { title: "Strategy", marks: 5, order: 4 },
-            { title: "Interpret / Develop", marks: 5, order: 5 },
-            { title: "Attitude", marks: 5, order: 6 },
-            { title: "Non-verbal Skills", marks: 5, order: 7 },
-          ]);
         }
+        // If API returns no criteria, we already have default criteria set
       } catch (error) {
         console.error("Error fetching criteria:", error);
-      } finally {
-        setIsLoading(false);
+        // Keep using default criteria on error
       }
     };
 
@@ -99,7 +111,6 @@ const MarksInput = ({
   // Initialize section marks from student data if they don't exist yet
   useEffect(() => {
     if (
-      !isLoading &&
       criteria.length > 0 &&
       currentScoringType === "individual" &&
       (!sectionMarks[row.id] || Object.keys(sectionMarks[row.id]).length === 0)
@@ -117,9 +128,27 @@ const MarksInput = ({
           ...prev,
           [row.id]: initialSectionMarks,
         }));
+      } else {
+        // Initialize with zeros if no student marks available
+        criteria.forEach((criterion, index) => {
+          initialSectionMarks[`section${index + 1}`] =
+            criterion.marks === 0 ? "--" : 0;
+        });
+
+        setSectionMarks((prev) => ({
+          ...prev,
+          [row.id]: initialSectionMarks,
+        }));
       }
     }
-  }, [currentScoringType, row.id, student.marks, criteria, isLoading]);
+  }, [
+    currentScoringType,
+    row.id,
+    student.marks,
+    criteria,
+    setSectionMarks,
+    sectionMarks,
+  ]);
 
   // Calculate total for section marks
   const calculateSectionTotal = () => {
@@ -171,6 +200,12 @@ const MarksInput = ({
           initialSectionMarks[`section${index + 1}`] =
             criterion.marks === 0 ? "--" : student.marks[index] || 0;
         });
+      } else {
+        // Initialize with zeros if no student marks available
+        criteria.forEach((criterion, index) => {
+          initialSectionMarks[`section${index + 1}`] =
+            criterion.marks === 0 ? "--" : 0;
+        });
       }
 
       setSectionMarks((prev) => ({
@@ -185,16 +220,6 @@ const MarksInput = ({
       });
     }
   };
-
-  if (isLoading) {
-    return (
-      <Card className="w-full shadow-sm border-gray-100">
-        <CardContent className="py-8 px-4 flex justify-center">
-          <div className="text-gray-500">Loading assessment...</div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card className="w-full shadow-sm border-gray-100">
@@ -240,115 +265,119 @@ const MarksInput = ({
           </div>
         </RadioGroup>
 
-        {currentScoringType === "overall" ? (
-          <div className="flex gap-3 items-center bg-white p-3 rounded-md border border-gray-100">
-            <Label className="text-sm min-w-20">Total Marks:</Label>
-            <Select
-              value={
-                customMarks[row.id]?.toString() || student.totalMarks.toString()
-              }
-              onValueChange={(value) => {
-                if (value === "custom") {
-                  setMarksInputType((prev) => ({
-                    ...prev,
-                    [row.id]: "custom",
-                  }));
-                } else {
-                  setCustomMarks((prev) => ({
-                    ...prev,
-                    [row.id]: Number(value),
-                  }));
-                }
-              }}
-              disabled={disabled}
-            >
-              <SelectTrigger className="w-32 bg-white border-gray-200">
-                <SelectValue placeholder="Select marks" />
-              </SelectTrigger>
-              <SelectContent>
-                {[0, 5, 10, 15, 20, 21, 22, 23, 24, 25].map((mark) => (
-                  <SelectItem key={mark} value={mark.toString()}>
-                    {mark}
-                  </SelectItem>
-                ))}
-                <SelectItem value="custom">Custom</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {marksInputType[row.id] === "custom" && (
-              <Input
-                type="number"
-                min="0"
-                max={getMaximumPossibleTotal()}
+        <div className="min-h-64">
+          {currentScoringType === "overall" ? (
+            <div className="flex gap-3 items-center bg-white p-3 rounded-md border border-gray-100">
+              <Label className="text-sm min-w-20">Total Marks:</Label>
+              <Select
                 value={
-                  customMarks[row.id] !== undefined
-                    ? customMarks[row.id]
-                    : student.totalMarks
+                  customMarks[row.id]?.toString() ||
+                  student.totalMarks?.toString() ||
+                  "0"
                 }
-                onChange={(e) => handleMarksChange(row.id, e.target.value)}
-                className="w-20 bg-white border-gray-200"
+                onValueChange={(value) => {
+                  if (value === "custom") {
+                    setMarksInputType((prev) => ({
+                      ...prev,
+                      [row.id]: "custom",
+                    }));
+                  } else {
+                    setCustomMarks((prev) => ({
+                      ...prev,
+                      [row.id]: Number(value),
+                    }));
+                  }
+                }}
                 disabled={disabled}
-              />
-            )}
-            <span className="text-sm text-gray-500 ml-1">
-              / {getMaximumPossibleTotal()}
-            </span>
-          </div>
-        ) : (
-          <div className="space-y-2 bg-white p-3 rounded-md border border-gray-100">
-            {criteria.map((criterion, index) => (
-              <div
-                key={`section${index + 1}`}
-                className={`flex items-center justify-between ${
-                  index > 0 ? "pt-2 border-t border-gray-100" : ""
-                }`}
               >
-                <Label
-                  className="w-36 text-sm font-medium"
-                  htmlFor={`section${index + 1}-${row.id}`}
+                <SelectTrigger className="w-32 bg-white border-gray-200">
+                  <SelectValue placeholder="Select marks" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[0, 5, 10, 15, 20, 21, 22, 23, 24, 25].map((mark) => (
+                    <SelectItem key={mark} value={mark.toString()}>
+                      {mark}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="custom">Custom</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {marksInputType[row.id] === "custom" && (
+                <Input
+                  type="number"
+                  min="0"
+                  max={getMaximumPossibleTotal()}
+                  value={
+                    customMarks[row.id] !== undefined
+                      ? customMarks[row.id]
+                      : student.totalMarks || 0
+                  }
+                  onChange={(e) => handleMarksChange(row.id, e.target.value)}
+                  className="w-20 bg-white border-gray-200"
+                  disabled={disabled}
+                />
+              )}
+              <span className="text-sm text-gray-500 ml-1">
+                / {getMaximumPossibleTotal()}
+              </span>
+            </div>
+          ) : (
+            <div className="space-y-2 bg-white p-3 rounded-md border border-gray-100">
+              {criteria.map((criterion, index) => (
+                <div
+                  key={`section${index + 1}`}
+                  className={`flex items-center justify-between ${
+                    index > 0 ? "pt-2 border-t border-gray-100" : ""
+                  }`}
                 >
-                  {criterion.title}
-                </Label>
-                <div className="flex items-center gap-2">
-                  {criterion.marks === 0 ? (
-                    <div className="w-16 text-center bg-gray-100 rounded-md py-1 px-2 text-gray-500 font-medium">
-                      --
-                    </div>
-                  ) : (
-                    <Input
-                      id={`section${index + 1}-${row.id}`}
-                      type="number"
-                      min="0"
-                      max={criterion.marks}
-                      value={getSectionValue(`section${index + 1}`)}
-                      onChange={(e) =>
-                        handleMarksChange(
-                          row.id,
-                          e.target.value,
-                          `section${index + 1}`
-                        )
-                      }
-                      className="w-16 text-center bg-white border-gray-200"
-                      disabled={disabled || criterion.marks === 0}
-                    />
-                  )}
-                  <span className="text-xs text-gray-500 min-w-8">
-                    / {criterion.marks}
+                  <Label
+                    className="w-36 text-sm font-medium"
+                    htmlFor={`section${index + 1}-${row.id}`}
+                  >
+                    {criterion.title}
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    {criterion.marks === 0 ? (
+                      <div className="w-16 text-center bg-gray-100 rounded-md py-1 px-2 text-gray-500 font-medium">
+                        --
+                      </div>
+                    ) : (
+                      <Input
+                        id={`section${index + 1}-${row.id}`}
+                        type="number"
+                        min="0"
+                        max={criterion.marks}
+                        value={getSectionValue(`section${index + 1}`)}
+                        onChange={(e) =>
+                          handleMarksChange(
+                            row.id,
+                            e.target.value,
+                            `section${index + 1}`
+                          )
+                        }
+                        className="w-16 text-center bg-white border-gray-200"
+                        disabled={disabled || criterion.marks === 0}
+                      />
+                    )}
+                    <span className="text-xs text-gray-500 min-w-8">
+                      / {criterion.marks}
+                    </span>
+                  </div>
+                </div>
+              ))}
+              <div className="flex justify-between items-center pt-3 mt-2 border-t border-gray-200">
+                <span className="text-sm font-medium">Total Score</span>
+                <div className="font-medium text-blue-600">
+                  {calculateSectionTotal()}{" "}
+                  <span className="text-gray-500 text-sm">
+                    / {getMaximumPossibleTotal()}
                   </span>
                 </div>
               </div>
-            ))}
-            <div className="flex justify-between items-center pt-3 mt-2 border-t border-gray-200">
-              <span className="text-sm font-medium">Total Score</span>
-              <div className="font-medium text-blue-600">
-                {calculateSectionTotal()}{" "}
-                <span className="text-gray-500 text-sm">
-                  / {getMaximumPossibleTotal()}
-                </span>
-              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </CardContent>
     </Card>
   );
