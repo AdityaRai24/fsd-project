@@ -2,7 +2,7 @@ import Teacher from "../models/Teachers.js";
 import Student from "../models/Students.js";
 import express from "express";
 import jwt from "jsonwebtoken";
-import Subject from "../models/subject.js";
+
 
 const router = express.Router();
 
