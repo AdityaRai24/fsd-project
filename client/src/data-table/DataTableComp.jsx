@@ -187,7 +187,7 @@ const DataTableComp = ({ editMode, setEditMode, experimentNo }) => {
         .filter(Boolean);
 
       const allChanges = [...overallChanges, ...sectionChanges];
-      console.log(allChanges);
+      
 
       if (allChanges.length === 0) {
         setIsSaving(false);

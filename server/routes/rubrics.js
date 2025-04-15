@@ -69,7 +69,7 @@ router.get("/:subject", async (req, res) => {
     console.log("3. Found rubrics in database:", rubrics);
 
     if (!rubrics || !rubrics.criteria || rubrics.criteria.length === 0) {
-      console.log("4. No rubrics found or empty criteria, returning defaults");
+      // console.log("4. No rubrics found or empty criteria, returning defaults");
       return res.status(200).json({
         criteria: [
           {
@@ -121,7 +121,7 @@ router.get("/:subject", async (req, res) => {
       });
     }
 
-    console.log("5. Returning found rubrics:", rubrics);
+    // console.log("5. Returning found rubrics:", rubrics);
     res.status(200).json(rubrics);
   } catch (error) {
     console.error("6. Error fetching rubrics:", error);

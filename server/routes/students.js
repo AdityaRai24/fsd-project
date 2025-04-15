@@ -18,7 +18,7 @@ router.get("/", async (req, res) => {
 router.post("/update-marks", async (req, res) => {
   try {
     const details = req.body;
-    console.log(details);
+    // console.log(details);
 
     const bulkOperations = details.map((detail) => {
       const marksToUpdate = detail.newMarksArray;

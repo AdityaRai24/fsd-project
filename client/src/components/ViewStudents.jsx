@@ -18,7 +18,7 @@ const ViewStudents = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const subject = searchParams.get("sub");
-  console.log(subject);
+  
 
   useEffect(() => {
     const fetchStudents = async () => {
